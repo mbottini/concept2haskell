@@ -39,6 +39,9 @@ parseTableEntry lst = TableEntry {
 parseLittleEndian :: [Word8] -> Int
 parseLittleEndian [] = 0
 parseLittleEndian (x:xs) = (fromIntegral x) + 256 * (parseLittleEndian xs)
+
+parseBigEndian :: [Word8] -> Int
+parseBigEndian = parseLittleEndian . reverse
  
 -- Takes a bytestream and returns a Get containing a list of bytes.
 gBytes :: Get [Word8]
