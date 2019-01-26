@@ -1,6 +1,7 @@
 import qualified Data.ByteString.Lazy as B
 import Data.Word
 import Data.Binary.Get
+import Data.Time.Clock
 
 data WorkoutType = FreeRow |
                    SingleDistance |
@@ -27,6 +28,91 @@ data TableEntry = TableEntry {
     recordSize :: Int,
     index :: Int
 } deriving(Show)
+
+data FixedHeader = FixedHeader {
+    workoutType :: WorkoutType,
+    serialNumber :: Int,
+    timeStamp :: UTCTime,
+    recordID :: Int,
+    totalDuration :: DiffTime,
+    totalDistance :: Int,
+    strokesPerMinute :: Int,
+    splitInfo :: Int,
+    splitSize :: Int
+} deriving(Show)
+
+data FixedIntervalHeader = FixedIntervalHeader {
+    workoutType :: WorkoutType,
+    serialNumber :: Int,
+    timeStamp :: UTCTime,
+    recordID :: Int,
+    numSplits :: Int,
+    splitSize :: Int,
+    restTime :: DiffTime,
+    totalTime :: DiffTime,
+    totalRestDistance :: Int
+} deriving(Show)
+
+data VariableIntervalHeader = VariableIntervalHeader {
+    workoutType :: WorkoutType,
+    serialNumber :: Int,
+    timeStamp :: UTCTime,
+    recordID :: Int,
+    numSplits :: Int,
+    splitSize :: Int,
+    totalWorkTime :: DiffTime,
+    totalWorkDistance :: Int
+} deriving(Show)
+    
+data DistanceFrame = DistanceFrame {
+    distance :: Int,
+    heartRate :: Int,
+    strokesPerMinute :: Int
+} deriving(Show)
+
+data TimeFrame = TimeFrame {
+    time :: DiffTime,
+    heartRate :: Int,
+    strokesPerMinute :: Int
+} deriving(Show)
+
+data DistanceIntervalFrame = DistanceIntervalFrame {
+    distance :: Int,
+    heartRate :: Int,
+    restHeartRate :: Int,
+    strokesPerMinute :: Int
+} deriving(Show)
+
+data TimeIntervalFrame = TimeIntervalFrame {
+    time :: DiffTime,
+    heartRate :: Int,
+    restHeartRate :: Int,
+    strokesPerMinute :: Int
+} deriving(Show)
+
+data VariableIntervalFrame = VariableIntervalFrame {
+    splitType :: Int,
+    strokesPerMinute :: Int,
+    workIntervalTime :: DiffTime,
+    workIntervalDistance :: Int,
+    heartRate :: Int,
+    restHeartRate :: Int,
+    intervalRestTime :: DiffTime,
+    intervalRestDistance :: Int
+} deriving(Show)
+    
+data FixedDistanceWorkout = FixedDistanceWorkout {
+    tableEntry :: TableEntry,
+    header :: fixedHeader,
+    frames :: [DistanceFrame]
+} deriving(Show)
+
+data FixedTimeWorkout = FixedTimeWorkout {
+    tableEntry :: TableEntry,
+    header :: fixedHeader,
+    frames :: [TimeFrame]
+} deriving(Show)
+    
 
 parseTableEntry :: [Word8] -> TableEntry
 parseTableEntry lst = TableEntry {
