@@ -1,5 +1,5 @@
 all:
-	ghc -dynamic test
+	ghc test
 
 clean:
 	rm -f *.o
