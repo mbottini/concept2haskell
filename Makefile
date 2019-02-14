@@ -7,3 +7,4 @@ clean:
 	rm -f *.hi
 	rm -f DataTypes/*.hi
 	rm -f test
+	rm -f *.pdf
