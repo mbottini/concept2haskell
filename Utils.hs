@@ -63,3 +63,6 @@ parseYear bs = 2000 + (bitsToInt . reverse $ bs)
 
 parseDuration :: [Word8] -> DiffTime
 parseDuration = secondsToDiffTime . fromIntegral . parseBigEndian
+
+inIO :: Monad m => (a -> b) -> a -> m b
+inIO f = return . f

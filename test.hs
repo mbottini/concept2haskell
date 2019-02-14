@@ -40,7 +40,12 @@ getLogDataAccessBinaries filename = do
     data_lst <- getLogDataAccessData filename
     return $ Utils.splitAll 32 data_lst
 
+getTableEntries :: [Char] -> IO [Te.TableEntry]
+getTableEntries filename = getLogDataAccessBinaries filename >>=
+                           Utils.inIO Utils.allButLast >>=
+                           Utils.inIO (map Te.parseTableEntry) 
+
 main = do
-    accessEntries <- getLogDataAccessBinaries "LogDataAccessTbl.bin"
-    putStrLn . show 
-             . (map Te.parseTableEntry) . Utils.allButLast $ accessEntries
+    entries <- getTableEntries "LogDataAccessTbl.bin"
+    workoutData <- getLogDataAccessData "LogDataStorage.bin"
+    putStrLn . show $ entries
