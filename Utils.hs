@@ -23,6 +23,9 @@ wordToBits' n w
 wordsToBits :: [Word8] -> [Bit]
 wordsToBits xs = xs >>= wordToBits
 
+wordsToBitsReverse :: [Word8] -> [Bit]
+wordsToBitsReverse xs = xs >>= (reverse . wordToBits)
+
 bitsToInt :: [Bit] -> Int
 bitsToInt [] = 0
 bitsToInt (True:xs) = 1 + 2 * (bitsToInt xs)
@@ -46,12 +49,12 @@ allButLast (x:xs) = x : allButLast xs
 
 createUTCTime :: Int -> Int -> Int -> Int -> Int -> UTCTime
 createUTCTime year month day hours minutes = UTCTime date diff
-    where date = fromGregorian (fromIntegral year) day month
+    where date = fromGregorian (fromIntegral year) month day
           diff = secondsToDiffTime . fromIntegral $ (60*minutes + 3600*hours)
 
 parseDateStamp :: [Word8] -> UTCTime
 parseDateStamp xs = createUTCTime year month day hours minutes
-    where bits = wordsToBits xs
+    where bits = wordsToBitsReverse xs
           year = parseYear . grabChunk 0 7 $ bits
           day = bitsToInt . reverse . grabChunk 7 5 $ bits
           month = bitsToInt . reverse . grabChunk 12 4 $ bits
@@ -59,7 +62,7 @@ parseDateStamp xs = createUTCTime year month day hours minutes
           minutes = bitsToInt . reverse . grabChunk 24 8 $ bits
 
 parseYear :: [Bit] -> Int
-parseYear bs = 2000 + (bitsToInt bs)
+parseYear bs = 2000 + (bitsToInt . reverse $ bs)
 
 parseDuration :: [Word8] -> DiffTime
 parseDuration = picosecondsToDiffTime . 
