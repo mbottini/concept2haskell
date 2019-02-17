@@ -24,3 +24,12 @@ parseFixedTimeWorkout teLst rawFrameLst = FixedTimeWorkout {
           newHeader = Fh.parseFixedHeader (Utils.grabChunk 0 52 rawFrameChunk)
           newFrames = map Tf.parseTimeFrame (Utils.splitAll 52 . drop 52 $ rawFrameChunk)
 
+getFrames :: [Word8] -> Te.TableEntry -> FixedTimeWorkout
+getFrames bs te = FixedTimeWorkout {
+    tableEntry = te,
+    header = newHeader,
+    frames = newFrames
+}
+    where rawFrameChunk = Utils.grabChunk (Te.recordOffset te) (Te.recordSize te) bs
+          newHeader = Fh.parseFixedHeader . Utils.grabChunk 0 52 $ rawFrameChunk
+          newFrames = map Tf.parseTimeFrame . Utils.splitAll 52 . drop 52 $ rawFrameChunk

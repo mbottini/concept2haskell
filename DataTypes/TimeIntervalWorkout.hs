@@ -19,10 +19,23 @@ parseTimeIntervalWorkout hs ds = TimeIntervalWorkout {
     header = Fih.parseFixedIntervalHeader chunk,
     frames = map Tif.parseTimeIntervalFrame . 
              Utils.splitAll Consts.frameSize .
-             drop Consts.fixedHeaderSize .
+             drop Consts.intervalHeaderSize .
              Utils.grabChunk offset index $ ds
 }
     where te = Te.parseTableEntry hs
           chunk = Utils.grabChunk offset Consts.intervalHeaderSize ds
+          offset = Te.recordOffset te
+          index = Te.recordSize te
+
+getFrames :: Te.TableEntry -> TimeIntervalWorkout
+getFrames te = TimeIntervalWorkout {
+    tableEntry = te,
+    header = Fih.parseFixedIntervalHeader chunk,
+    frames = map Tif.parseTimeIntervalFrame . 
+             Utils.splitAll Consts.frameSize .
+             drop Consts.intervalHeaderSize .
+             Utils.grabChunk offset index $ ds
+}
+    where chunk = Utils.grabChunk offset Consts.intervalHeaderSize ds
           offset = Te.recordOffset te
           index = Te.recordSize te

@@ -26,3 +26,16 @@ parseFixedDistanceWorkout hs ds = FixedDistanceWorkout {
           chunk = Utils.grabChunk offset Consts.fixedHeaderSize ds
           offset = Te.recordOffset te
           index = Te.recordSize te
+
+getFrames :: [Word8] -> Te.TableEntry -> FixedDistanceWorkout
+getFrames bs te = FixedDistanceWorkout {
+    tableEntry = te,
+    header = Fh.parseFixedHeader chunk,
+    frames = map Df.parseDistanceFrame . 
+             Utils.splitAll Consts.frameSize .
+             drop Consts.fixedHeaderSize .
+             Utils.grabChunk offset index $ bs
+}
+    where chunk = Utils.grabChunk offset Consts.fixedHeaderSize bs
+          offset = Te.recordOffset te
+          index = Te.recordSize te

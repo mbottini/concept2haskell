@@ -19,10 +19,23 @@ parseDistanceIntervalWorkout hs ds = DistanceIntervalWorkout {
     header = Fih.parseFixedIntervalHeader chunk,
     frames = map Dif.parseDistanceIntervalFrame . 
              Utils.splitAll Consts.frameSize .
-             drop Consts.fixedHeaderSize .
+             drop Consts.intervalHeaderSize .
              Utils.grabChunk offset index $ ds
 }
     where te = Te.parseTableEntry hs
           chunk = Utils.grabChunk offset Consts.intervalHeaderSize ds
+          offset = Te.recordOffset te
+          index = Te.recordSize te
+
+getFrames :: Te.TableEntry -> DistanceIntervalWorkout
+getFrames te = DistanceIntervalWorkout {
+    tableEntry = te,
+    header = Fih.parseFixedIntervalHeader chunk,
+    frames = map Dif.parseDistanceIntervalFrame . 
+             Utils.splitAll Consts.frameSize .
+             drop Consts.intervalHeaderSize .
+             Utils.grabChunk offset index $ ds
+}
+    where chunk = Utils.grabChunk offset Consts.intervalHeaderSize ds
           offset = Te.recordOffset te
           index = Te.recordSize te

@@ -15,6 +15,7 @@ import qualified DataTypes.TimeIntervalFrame as Tif
 import qualified DataTypes.VariableIntervalFrame as Vif
 import qualified DataTypes.FixedDistanceWorkout as Fdw
 import qualified DataTypes.FixedTimeWorkout as Ftw
+import qualified DataTypes.VariableIntervalWorkout as Viw
 import qualified Utils
 
 
