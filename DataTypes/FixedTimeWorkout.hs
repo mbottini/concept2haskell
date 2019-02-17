@@ -4,7 +4,7 @@ import qualified DataTypes.TableEntry as Te
 import qualified DataTypes.FixedHeader as Fh
 import qualified DataTypes.TimeFrame as Tf
 import qualified Utils
-
+import qualified DataTypes.Consts as Consts
 import Data.Word
 
 data FixedTimeWorkout = FixedTimeWorkout {
@@ -12,24 +12,30 @@ data FixedTimeWorkout = FixedTimeWorkout {
     header :: Fh.FixedHeader,
     frames :: [Tf.TimeFrame]
 } deriving(Show)
- 
-parseFixedTimeWorkout :: [Word8] -> [Word8] -> FixedTimeWorkout
-parseFixedTimeWorkout teLst rawFrameLst = FixedTimeWorkout {
-    tableEntry = newEntry,
-    header = newHeader,
-    frames = newFrames
-}
-    where newEntry = Te.parseTableEntry teLst
-          rawFrameChunk = Utils.grabChunk (Te.recordOffset newEntry) (Te.recordSize newEntry) rawFrameLst
-          newHeader = Fh.parseFixedHeader (Utils.grabChunk 0 52 rawFrameChunk)
-          newFrames = map Tf.parseTimeFrame (Utils.splitAll 52 . drop 52 $ rawFrameChunk)
 
-getFrames :: Te.TableEntry -> [Word8] -> FixedTimeWorkout
+parseFixedTimeWorkout :: [Word8] -> [Word8] -> FixedTimeWorkout
+parseFixedTimeWorkout hs ds = FixedTimeWorkout {
+    tableEntry = te,
+    header = Fh.parseFixedHeader chunk,
+    frames = map Tf.parseTimeFrame . 
+             Utils.splitAll Consts.frameSize .
+             drop Consts.fixedHeaderSize .
+             Utils.grabChunk offset index $ ds
+}
+    where te = Te.parseTableEntry hs
+          chunk = Utils.grabChunk offset Consts.fixedHeaderSize ds
+          offset = Te.recordOffset te
+          index = Te.recordSize te
+
+getFrames :: Te.TableEntry -> [Word8]-> FixedTimeWorkout
 getFrames te bs = FixedTimeWorkout {
     tableEntry = te,
-    header = newHeader,
-    frames = newFrames
+    header = Fh.parseFixedHeader chunk,
+    frames = map Tf.parseTimeFrame . 
+             Utils.splitAll Consts.frameSize .
+             drop Consts.fixedHeaderSize .
+             Utils.grabChunk offset index $ bs
 }
-    where rawFrameChunk = Utils.grabChunk (Te.recordOffset te) (Te.recordSize te) bs
-          newHeader = Fh.parseFixedHeader . Utils.grabChunk 0 52 $ rawFrameChunk
-          newFrames = map Tf.parseTimeFrame . Utils.splitAll 52 . drop 52 $ rawFrameChunk
+    where chunk = Utils.grabChunk offset Consts.fixedHeaderSize bs
+          offset = Te.recordOffset te
+          index = Te.recordSize te
