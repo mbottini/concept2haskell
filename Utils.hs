@@ -59,10 +59,13 @@ parseDateStamp xs = createUTCTime year month day hours minutes
           minutes = bitsToInt . reverse . grabChunk 24 8 $ bits
 
 parseYear :: [Bit] -> Int
-parseYear bs = 2000 + (bitsToInt . reverse $ bs)
+parseYear bs = 2000 + (bitsToInt bs)
 
 parseDuration :: [Word8] -> DiffTime
-parseDuration = secondsToDiffTime . fromIntegral . parseBigEndian
+parseDuration = picosecondsToDiffTime . 
+                (*100000000000) .
+                toInteger . 
+                parseBigEndian
 
 inIO :: Monad m => (a -> b) -> a -> m b
 inIO f = return . f
