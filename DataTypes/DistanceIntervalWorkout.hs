@@ -27,8 +27,8 @@ parseDistanceIntervalWorkout hs ds = DistanceIntervalWorkout {
           offset = Te.recordOffset te
           index = Te.recordSize te
 
-getFrames :: Te.TableEntry -> DistanceIntervalWorkout
-getFrames te = DistanceIntervalWorkout {
+getFrames :: Te.TableEntry -> [Word8] -> DistanceIntervalWorkout
+getFrames te ds = DistanceIntervalWorkout {
     tableEntry = te,
     header = Fih.parseFixedIntervalHeader chunk,
     frames = map Dif.parseDistanceIntervalFrame . 

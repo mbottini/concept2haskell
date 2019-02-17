@@ -16,6 +16,7 @@ import qualified DataTypes.VariableIntervalFrame as Vif
 import qualified DataTypes.FixedDistanceWorkout as Fdw
 import qualified DataTypes.FixedTimeWorkout as Ftw
 import qualified DataTypes.VariableIntervalWorkout as Viw
+import qualified DataTypes.Workout as W
 import qualified Utils
 
 
@@ -46,7 +47,11 @@ getTableEntries filename = getLogDataAccessBinaries filename >>=
                            Utils.inIO Utils.allButLast >>=
                            Utils.inIO (map Te.parseTableEntry) 
 
+getWorkouts :: [Te.TableEntry] -> [Word8] -> [W.Workout]
+getWorkouts tes ds = map (\te -> W.getFrames te ds) tes
+
 main = do
     entries <- getTableEntries "LogDataAccessTbl.bin"
     workoutData <- getLogDataAccessData "LogDataStorage.bin"
-    putStrLn . show $ entries
+    let workouts = getWorkouts entries workoutData
+    mapM (putStrLn . show) workouts

@@ -27,8 +27,8 @@ parseFixedDistanceWorkout hs ds = FixedDistanceWorkout {
           offset = Te.recordOffset te
           index = Te.recordSize te
 
-getFrames :: [Word8] -> Te.TableEntry -> FixedDistanceWorkout
-getFrames bs te = FixedDistanceWorkout {
+getFrames :: Te.TableEntry -> [Word8]-> FixedDistanceWorkout
+getFrames te bs = FixedDistanceWorkout {
     tableEntry = te,
     header = Fh.parseFixedHeader chunk,
     frames = map Df.parseDistanceFrame . 

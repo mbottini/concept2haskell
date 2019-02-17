@@ -27,8 +27,8 @@ parseTimeIntervalWorkout hs ds = TimeIntervalWorkout {
           offset = Te.recordOffset te
           index = Te.recordSize te
 
-getFrames :: Te.TableEntry -> TimeIntervalWorkout
-getFrames te = TimeIntervalWorkout {
+getFrames :: Te.TableEntry -> [Word8] -> TimeIntervalWorkout
+getFrames te ds = TimeIntervalWorkout {
     tableEntry = te,
     header = Fih.parseFixedIntervalHeader chunk,
     frames = map Tif.parseTimeIntervalFrame . 
