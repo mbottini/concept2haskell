@@ -3,19 +3,7 @@ import Data.Word
 import Data.Binary.Get
 import Data.Time.Clock
 
-import qualified DataTypes.WorkoutType as Wt
-import qualified DataTypes.FixedHeader as Fh
 import qualified DataTypes.TableEntry as Te
-import qualified DataTypes.FixedIntervalHeader as Fih
-import qualified DataTypes.VariableIntervalHeader as Vih
-import qualified DataTypes.DistanceFrame as Df
-import qualified DataTypes.TimeFrame as Tf
-import qualified DataTypes.DistanceIntervalFrame as Dif
-import qualified DataTypes.TimeIntervalFrame as Tif
-import qualified DataTypes.VariableIntervalFrame as Vif
-import qualified DataTypes.FixedDistanceWorkout as Fdw
-import qualified DataTypes.FixedTimeWorkout as Ftw
-import qualified DataTypes.VariableIntervalWorkout as Viw
 import qualified DataTypes.Workout as W
 import qualified Utils
 
