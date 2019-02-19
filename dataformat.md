@@ -84,7 +84,6 @@ Each entry in **LogDataStorage** has a header and a number of splits or interval
 |------:|---------------------|
 | 0-18  | As above            |
 | 19    | Number of splits    |
-| 20-21 | Split size          |
 | 20-23 | Total Work Duration |
 | 24-27 | Total Work Distance |
 | 30-51 | N/A                 |

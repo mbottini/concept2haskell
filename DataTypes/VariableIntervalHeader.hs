@@ -12,7 +12,6 @@ data VariableIntervalHeader = VariableIntervalHeader {
     userID :: Int,
     recordID :: Int,
     numSplits :: Int,
-    splitSize :: Int,
     totalTime :: DiffTime,
     totalWorkDistance :: Int
 } deriving(Show)
@@ -25,8 +24,7 @@ parseVariableIntervalHeader ws = VariableIntervalHeader {
     userID = Utils.parseBigEndian . Utils.grabChunk 12 2 $ ws,
     recordID = fromIntegral . (!! 18) $ ws,
     numSplits = fromIntegral . (!! 19) $ ws,
-    splitSize = Utils.parseBigEndian . Utils.grabChunk 20 2 $ ws,
-    totalTime = Utils.parseDuration . Utils.grabChunk 22 4 $ ws,
-    totalWorkDistance = Utils.parseBigEndian . Utils.grabChunk 26 4 $ ws
+    totalTime = Utils.parseDuration . Utils.grabChunk 20 4 $ ws,
+    totalWorkDistance = Utils.parseBigEndian . Utils.grabChunk 24 4 $ ws
 }
 
