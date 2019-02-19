@@ -4,6 +4,7 @@ module DataTypes.Workout where
 import qualified DataTypes.TableEntry as Te
 import qualified DataTypes.WorkoutType as Wt
 import qualified DataTypes.FixedDistanceWorkout as Fdw
+import qualified DataTypes.FixedCalorieWorkout as Fcw
 import qualified DataTypes.FixedTimeWorkout as Ftw
 import qualified DataTypes.DistanceIntervalWorkout as Diw
 import qualified DataTypes.TimeIntervalWorkout as Tiw
@@ -12,6 +13,7 @@ import qualified DataTypes.VariableIntervalWorkout as Viw
 import Data.Word
 
 data Workout = FixedDistanceWorkout Fdw.FixedDistanceWorkout |
+               FixedCalorieWorkout Fcw.FixedCalorieWorkout |
                FixedTimeWorkout Ftw.FixedTimeWorkout |
                DistanceIntervalWorkout Diw.DistanceIntervalWorkout |
                TimeIntervalWorkout Tiw.TimeIntervalWorkout |
@@ -26,4 +28,4 @@ getFrames te bs = case Te.workoutType te of
    Wt.TimedInterval -> TimeIntervalWorkout $ Tiw.getFrames te bs
    Wt.DistanceInterval -> DistanceIntervalWorkout $ Diw.getFrames te bs
    Wt.VariableInterval -> VariableIntervalWorkout $ Viw.getFrames te bs
-   Wt.SingleCalorie -> error "TODO: Figure this out!"
+   Wt.SingleCalorie -> FixedCalorieWorkout $ Fcw.getFrames te bs
