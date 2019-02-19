@@ -1,7 +1,7 @@
 module DataTypes.FixedTimeWorkout where
 
 import qualified DataTypes.TableEntry as Te
-import qualified DataTypes.FixedHeader as Fh
+import qualified DataTypes.FixedTimeHeader as Fth
 import qualified DataTypes.TimeFrame as Tf
 import qualified Utils
 import qualified DataTypes.Consts as Consts
@@ -9,14 +9,14 @@ import Data.Word
 
 data FixedTimeWorkout = FixedTimeWorkout {
     tableEntry :: Te.TableEntry,
-    header :: Fh.FixedHeader,
+    header :: Fth.FixedTimeHeader,
     frames :: [Tf.TimeFrame]
 } deriving(Show)
 
 parseFixedTimeWorkout :: [Word8] -> [Word8] -> FixedTimeWorkout
 parseFixedTimeWorkout hs ds = FixedTimeWorkout {
     tableEntry = te,
-    header = Fh.parseFixedHeader chunk,
+    header = Fth.parseFixedTimeHeader chunk,
     frames = map Tf.parseTimeFrame . 
              Utils.splitAll Consts.frameSize .
              drop Consts.fixedHeaderSize .
@@ -30,7 +30,7 @@ parseFixedTimeWorkout hs ds = FixedTimeWorkout {
 getFrames :: Te.TableEntry -> [Word8]-> FixedTimeWorkout
 getFrames te bs = FixedTimeWorkout {
     tableEntry = te,
-    header = Fh.parseFixedHeader chunk,
+    header = Fth.parseFixedTimeHeader chunk,
     frames = map Tf.parseTimeFrame . 
              Utils.splitAll Consts.frameSize .
              drop Consts.fixedHeaderSize .

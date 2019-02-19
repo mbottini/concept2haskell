@@ -1,7 +1,7 @@
 module DataTypes.FixedCalorieWorkout where
 
 import qualified DataTypes.TableEntry as Te
-import qualified DataTypes.FixedHeader as Fh
+import qualified DataTypes.FixedCalorieHeader as Fch
 import qualified DataTypes.DistanceFrame as Df
 import qualified Utils
 import qualified DataTypes.Consts as Consts
@@ -9,14 +9,14 @@ import Data.Word
 
 data FixedCalorieWorkout = FixedCalorieWorkout {
     tableEntry :: Te.TableEntry,
-    header :: Fh.FixedHeader,
+    header :: Fch.FixedCalorieHeader,
     frames :: [Df.DistanceFrame]
 } deriving(Show)
 
 parseFixedCalorieWorkout :: [Word8] -> [Word8] -> FixedCalorieWorkout
 parseFixedCalorieWorkout hs ds = FixedCalorieWorkout {
     tableEntry = te,
-    header = Fh.parseFixedHeader chunk,
+    header = Fch.parseFixedCalorieHeader chunk,
     frames = map Df.parseDistanceFrame . 
              Utils.splitAll Consts.frameSize .
              drop Consts.fixedHeaderSize .
@@ -30,7 +30,7 @@ parseFixedCalorieWorkout hs ds = FixedCalorieWorkout {
 getFrames :: Te.TableEntry -> [Word8]-> FixedCalorieWorkout
 getFrames te bs = FixedCalorieWorkout {
     tableEntry = te,
-    header = Fh.parseFixedHeader chunk,
+    header = Fch.parseFixedCalorieHeader chunk,
     frames = map Df.parseDistanceFrame . 
              Utils.splitAll Consts.frameSize .
              drop Consts.fixedHeaderSize .

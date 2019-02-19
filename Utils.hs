@@ -70,5 +70,10 @@ parseDuration = picosecondsToDiffTime .
                 toInteger . 
                 parseBigEndian
 
+parseSecs :: [Word8] -> DiffTime
+parseSecs = secondsToDiffTime .
+            toInteger .
+            parseBigEndian
+
 inIO :: Monad m => (a -> b) -> a -> m b
 inIO f = return . f

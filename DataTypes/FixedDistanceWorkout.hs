@@ -1,7 +1,7 @@
 module DataTypes.FixedDistanceWorkout where
 
 import qualified DataTypes.TableEntry as Te
-import qualified DataTypes.FixedHeader as Fh
+import qualified DataTypes.FixedDistanceHeader as Fdh
 import qualified DataTypes.DistanceFrame as Df
 import qualified Utils
 import qualified DataTypes.Consts as Consts
@@ -9,14 +9,14 @@ import Data.Word
 
 data FixedDistanceWorkout = FixedDistanceWorkout {
     tableEntry :: Te.TableEntry,
-    header :: Fh.FixedHeader,
+    header :: Fdh.FixedDistanceHeader,
     frames :: [Df.DistanceFrame]
 } deriving(Show)
 
 parseFixedDistanceWorkout :: [Word8] -> [Word8] -> FixedDistanceWorkout
 parseFixedDistanceWorkout hs ds = FixedDistanceWorkout {
     tableEntry = te,
-    header = Fh.parseFixedHeader chunk,
+    header = Fdh.parseFixedDistanceHeader chunk,
     frames = map Df.parseDistanceFrame . 
              Utils.splitAll Consts.frameSize .
              drop Consts.fixedHeaderSize .
@@ -30,7 +30,7 @@ parseFixedDistanceWorkout hs ds = FixedDistanceWorkout {
 getFrames :: Te.TableEntry -> [Word8]-> FixedDistanceWorkout
 getFrames te bs = FixedDistanceWorkout {
     tableEntry = te,
-    header = Fh.parseFixedHeader chunk,
+    header = Fdh.parseFixedDistanceHeader chunk,
     frames = map Df.parseDistanceFrame . 
              Utils.splitAll Consts.frameSize .
              drop Consts.fixedHeaderSize .
