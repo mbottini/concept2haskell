@@ -1,11 +1,11 @@
-module DataTypes.FixedIntervalHeader where
+module DataTypes.DistanceIntervalHeader where
 
 import Data.Time.Clock
 import Data.Word
 import qualified DataTypes.WorkoutType as Wt
 import qualified Utils
 
-data FixedIntervalHeader = FixedIntervalHeader {
+data DistanceIntervalHeader = DistanceIntervalHeader {
     workoutType :: Wt.WorkoutType,
     serialNumber :: Int,
     timeStamp :: UTCTime,
@@ -18,8 +18,8 @@ data FixedIntervalHeader = FixedIntervalHeader {
     totalRestDistance :: Int
 } deriving(Show)
 
-parseFixedIntervalHeader :: [Word8] -> FixedIntervalHeader
-parseFixedIntervalHeader ws = FixedIntervalHeader {
+parseDistanceIntervalHeader :: [Word8] -> DistanceIntervalHeader
+parseDistanceIntervalHeader ws = DistanceIntervalHeader {
     workoutType = Wt.parseWorkoutType . fromIntegral . (!! 1) $ ws,
     serialNumber = Utils.parseBigEndian . Utils.grabChunk 4 4 $ ws,
     timeStamp = Utils.parseDateStamp . Utils.grabChunk 8 4 $ ws,

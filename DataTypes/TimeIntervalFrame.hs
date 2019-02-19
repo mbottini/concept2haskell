@@ -1,11 +1,10 @@
 module DataTypes.TimeIntervalFrame where
 
-import Data.Time.Clock
 import Data.Word
 import qualified Utils
 
 data TimeIntervalFrame = TimeIntervalFrame {
-    duration :: DiffTime,
+    distance :: Int,
     heartRate :: Int,
     restHeartRate :: Int,
     strokesPerMinute :: Int
@@ -13,7 +12,7 @@ data TimeIntervalFrame = TimeIntervalFrame {
 
 parseTimeIntervalFrame :: [Word8] -> TimeIntervalFrame
 parseTimeIntervalFrame ws = TimeIntervalFrame {
-    duration = Utils.parseDuration . Utils.grabChunk 0 2 $ ws,
+    distance = Utils.parseBigEndian . Utils.grabChunk 0 2 $ ws,
     heartRate = fromIntegral . (!! 2) $ ws,
     restHeartRate = fromIntegral . (!! 3) $ ws,
     strokesPerMinute = fromIntegral . (!! 4) $ ws
