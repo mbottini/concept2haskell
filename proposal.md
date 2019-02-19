@@ -41,11 +41,13 @@ Concept2's Logbook API requires authentication.
 
 ## Stretch Goals, Silly And Otherwise
 
-4. The proprietary smartcard can be read with a USB card reader.
+4. (NOPE) The proprietary smartcard can be read with a USB card reader.
 Unfortunately, no Linux drivers exist to read the card. But I can use
 Wireshark to intercept the bytes that are sent by the Windows utility to my
 card reader, and my guess is that it's rudimentary. I've also done a fair
 amount of low-level interaction with USB devices at work.
+
+  This turned out to be a Charlie Foxtrot. Not gonna happen.
 
 5. Concept2 requires me to run my utility with the "development" version of
 their logbook as a target, and then apply to them once it's ready to work on
