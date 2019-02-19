@@ -23,6 +23,6 @@ parseVariableIntervalFrame ws = VariableIntervalFrame {
     workIntervalDistance = Utils.parseBigEndian . Utils.grabChunk 6 4 $ ws,
     heartRate = fromIntegral . (!! 10) $ ws,
     restHeartRate = fromIntegral . (!! 11) $ ws,
-    intervalRestTime = Utils.parseDuration . Utils.grabChunk 12 2 $ ws,
+    intervalRestTime = Utils.parseSecs . Utils.grabChunk 12 2 $ ws,
     intervalRestDistance = Utils.parseBigEndian . Utils.grabChunk 14 2 $ ws
 }
