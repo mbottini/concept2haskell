@@ -8,3 +8,5 @@ clean:
 	rm -f DataTypes/*.hi
 	rm -f test
 	rm -f *.pdf
+	rm -f *.html
+	rm -f *.txt
