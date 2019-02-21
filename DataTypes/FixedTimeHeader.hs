@@ -29,5 +29,5 @@ parseFixedTimeHeader lst = FixedTimeHeader {
     totalDistance = Utils.parseBigEndian . Utils.grabChunk 24 4 $ lst,
     strokesPerMinute = fromIntegral . (!! 28) $ lst,
     splitInfo = fromIntegral . (!! 29) $ lst,
-    splitSize = Utils.parseSecs . Utils.grabChunk 30 2 $ lst
+    splitSize = Utils.parseDuration . Utils.grabChunk 30 2 $ lst
 }
