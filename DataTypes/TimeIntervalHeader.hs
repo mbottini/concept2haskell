@@ -14,7 +14,7 @@ data TimeIntervalHeader = TimeIntervalHeader {
     numSplits :: Int,
     splitSize :: DiffTime,
     restTime :: DiffTime,
-    totalTime :: DiffTime,
+    totalDistance :: Int,
     totalRestDistance :: Int
 } deriving(Show)
 
@@ -28,6 +28,6 @@ parseTimeIntervalHeader ws = TimeIntervalHeader {
     numSplits = fromIntegral . (!! 19) $ ws,
     splitSize = Utils.parseDuration . Utils.grabChunk 20 2 $ ws,
     restTime = Utils.parseSecs . Utils.grabChunk 22 2 $ ws,
-    totalTime = Utils.parseDuration . Utils.grabChunk 24 4 $ ws,
+    totalDistance = Utils.parseBigEndian . Utils.grabChunk 24 4 $ ws,
     totalRestDistance = Utils.parseBigEndian . Utils.grabChunk 28 2 $ ws
 }
