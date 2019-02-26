@@ -1,24 +1,24 @@
-module DataTypes.DistanceIntervalWorkout where
+module DataTypes.CalorieIntervalWorkout where
 
 import qualified DataTypes.TableEntry as Te
-import qualified DataTypes.DistanceIntervalHeader as Dih
-import qualified DataTypes.DistanceIntervalFrame as Dif
+import qualified DataTypes.CalorieIntervalHeader as Cih
+import qualified DataTypes.CalorieIntervalFrame as Cif
 import qualified Utils
 import qualified DataTypes.Consts as Consts
 import Data.Word
 import Data.Aeson
 
-data DistanceIntervalWorkout = DistanceIntervalWorkout {
+data CalorieIntervalWorkout = CalorieIntervalWorkout {
     tableEntry :: Te.TableEntry,
-    header :: Dih.DistanceIntervalHeader,
-    frames :: [Dif.DistanceIntervalFrame]
+    header :: Cih.CalorieIntervalHeader,
+    frames :: [Cif.CalorieIntervalFrame]
 } deriving(Show)
 
-parseDistanceIntervalWorkout :: [Word8] -> [Word8] -> DistanceIntervalWorkout
-parseDistanceIntervalWorkout hs ds = DistanceIntervalWorkout {
+parseCalorieIntervalWorkout :: [Word8] -> [Word8] -> CalorieIntervalWorkout
+parseCalorieIntervalWorkout hs ds = CalorieIntervalWorkout {
     tableEntry = te,
-    header = Dih.parseDistanceIntervalHeader chunk,
-    frames = map Dif.parseDistanceIntervalFrame . 
+    header = Cih.parseCalorieIntervalHeader chunk,
+    frames = map Cif.parseCalorieIntervalFrame . 
              Utils.splitAll Consts.frameSize .
              drop Consts.intervalHeaderSize .
              Utils.grabChunk offset index $ ds
@@ -28,11 +28,11 @@ parseDistanceIntervalWorkout hs ds = DistanceIntervalWorkout {
           offset = Te.recordOffset te
           index = Te.recordSize te
 
-getFrames :: Te.TableEntry -> [Word8] -> DistanceIntervalWorkout
-getFrames te ds = DistanceIntervalWorkout {
+getFrames :: Te.TableEntry -> [Word8] -> CalorieIntervalWorkout
+getFrames te ds = CalorieIntervalWorkout {
     tableEntry = te,
-    header = Dih.parseDistanceIntervalHeader chunk,
-    frames = map Dif.parseDistanceIntervalFrame . 
+    header = Cih.parseCalorieIntervalHeader chunk,
+    frames = map Cif.parseCalorieIntervalFrame . 
              Utils.splitAll Consts.frameSize .
              drop Consts.intervalHeaderSize .
              Utils.grabChunk offset index $ ds
