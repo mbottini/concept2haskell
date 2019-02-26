@@ -40,6 +40,7 @@ Each entry in **LogDataAccessTbl** is 32 bytes, multibyte entries are Little End
 | 0x07  | Distance Interval |
 | 0x08  | Variable Interval |
 | 0x0A  | Single Calorie    |
+| 0x0C  | Calorie Interval  |
 
 
 ## LogDataStorage.bin
