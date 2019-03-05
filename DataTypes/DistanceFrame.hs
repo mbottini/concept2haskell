@@ -1,8 +1,12 @@
+{-# LANGUAGE OverloadedStrings #-} -- Needed for JSON string assignments
+
 module DataTypes.DistanceFrame where
 
 import qualified Utils
 import Data.Time.Clock
 import Data.Word
+import Data.Aeson
+import Data.Scientific
 
 data DistanceFrame = DistanceFrame {
     duration :: DiffTime,
@@ -16,3 +20,10 @@ parseDistanceFrame ws = DistanceFrame {
     heartRate = fromIntegral . (!! 2) $ ws,
     strokesPerMinute = fromIntegral . (!! 3) $ ws
 }
+
+instance ToJSON DistanceFrame where
+    toJSON df = object [ 
+        "type" .= String "distance",
+        "distance" .= Number (Utils.tenthsToScientific . duration $ df),
+        "stroke_rate" .= Number (Utils.intToScientific . strokesPerMinute $ df)]
+-- TODO: Heartrate?

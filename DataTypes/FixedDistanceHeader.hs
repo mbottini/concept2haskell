@@ -1,9 +1,13 @@
+{-# LANGUAGE OverloadedStrings #-} -- Needed for JSON string assignments
+
 module DataTypes.FixedDistanceHeader where
 
 import qualified DataTypes.WorkoutType as Wt
 import qualified Utils
 import Data.Time
 import Data.Word
+import Data.Aeson
+import Data.Text
 
 data FixedDistanceHeader = FixedDistanceHeader {
     workoutType :: Wt.WorkoutType,
@@ -31,3 +35,13 @@ parseFixedDistanceHeader lst = FixedDistanceHeader {
     splitInfo = fromIntegral . (!! 29) $ lst,
     splitSize = Utils.parseBigEndian . Utils.grabChunk 30 2 $ lst
 }
+
+instance ToJSON FixedDistanceHeader where
+    toJSON h = object [
+        "workout_type" .= String "FixedDistanceSplits" ,
+        "date" .= String (pack . show . timeStamp $ h),
+        "distance" .= Number (Utils.intToScientific . totalDistance $ h),
+        "time" .= Number (Utils.tenthsToScientific . totalDuration $ h),
+        "weight_class" .= String "H",
+        "stroke_rate" .= Number (Utils.intToScientific . strokesPerMinute $ h)]
+        

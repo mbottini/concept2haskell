@@ -1,6 +1,9 @@
 module Utils where
 import Data.Word
 import Data.Time
+import Data.Scientific
+import Data.Aeson
+import qualified Data.HashMap.Lazy as HML
 
 parseLittleEndian :: [Word8] -> Int
 parseLittleEndian [] = 0
@@ -74,6 +77,16 @@ parseSecs :: [Word8] -> DiffTime
 parseSecs = secondsToDiffTime .
             toInteger .
             parseBigEndian
+
+tenthsToScientific :: DiffTime -> Scientific
+tenthsToScientific = unsafeFromRational . (*10) . toRational
+
+intToScientific :: Int -> Scientific
+intToScientific = unsafeFromRational . fromIntegral
+
+mergeObjects :: Value -> Value -> Value
+mergeObjects (Object x) (Object y) = Object $ HML.union x y
+mergeObjects _ _ = error "Can't merge non-object values!"
 
 inIO :: Monad m => (a -> b) -> a -> m b
 inIO f = return . f
