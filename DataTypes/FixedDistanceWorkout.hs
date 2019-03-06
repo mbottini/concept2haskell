@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-} -- Needed for JSON string assignments
+
 module DataTypes.FixedDistanceWorkout where
 
 import qualified DataTypes.TableEntry as Te
@@ -6,6 +8,8 @@ import qualified DataTypes.DistanceFrame as Df
 import qualified Utils
 import qualified DataTypes.Consts as Consts
 import Data.Word
+import Data.Aeson
+import Data.Aeson.Types
 
 data FixedDistanceWorkout = FixedDistanceWorkout {
     tableEntry :: Te.TableEntry,
@@ -39,3 +43,13 @@ getFrames te bs = FixedDistanceWorkout {
     where chunk = Utils.grabChunk offset Consts.fixedHeaderSize bs
           offset = Te.recordOffset te
           index = Te.recordSize te
+
+instance ToJSON FixedDistanceWorkout where
+    toJSON w = Utils.mergeObjects splits (toJSON (header w))
+        where splits = (object ["workout" .= object ["splits" .= fs]])
+              total = Fdh.totalDistance . header $ w
+              t = Fdh.splitSize . header $ w
+              fs = listValue id . 
+                   Utils.addDistanceToIntervals t total .
+                   map toJSON . 
+                   frames $ w

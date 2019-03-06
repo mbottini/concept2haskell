@@ -1,9 +1,12 @@
+{-# LANGUAGE OverloadedStrings #-} -- Needed for JSON string assignments
+
 module Utils where
 import Data.Word
 import Data.Time
 import Data.Scientific
 import Data.Aeson
 import qualified Data.HashMap.Lazy as HML
+import qualified Data.Text as DT
 
 parseLittleEndian :: [Word8] -> Int
 parseLittleEndian [] = 0
@@ -78,8 +81,11 @@ parseSecs = secondsToDiffTime .
             toInteger .
             parseBigEndian
 
+secsToScientific :: DiffTime -> Scientific
+secsToScientific = unsafeFromRational . toRational
+
 tenthsToScientific :: DiffTime -> Scientific
-tenthsToScientific = unsafeFromRational . (*10) . toRational
+tenthsToScientific = (*10) . secsToScientific
 
 intToScientific :: Int -> Scientific
 intToScientific = unsafeFromRational . fromIntegral
@@ -87,6 +93,35 @@ intToScientific = unsafeFromRational . fromIntegral
 mergeObjects :: Value -> Value -> Value
 mergeObjects (Object x) (Object y) = Object $ HML.union x y
 mergeObjects _ _ = error "Can't merge non-object values!"
+
+
+-- Concept2 allows the user to have "partial" splits. Say that I row for eleven
+-- minutes. I can set the split to 2 minutes, which means that the final split
+-- will be for 1 minute. This isn't tracked inside the split frame! Instead,
+-- you have to take the total time, subtract from the total as you go through
+-- the splits, and then give the remainder to the final partial split.
+--
+-- I wish I could abstract these two into a single function, but DiffTimes
+-- aren't *quite* the same as Ints.
+
+addScientificToIntervals :: Num a => String -> 
+                                     (a -> Scientific) -> 
+                                     a ->
+                                     a ->
+                                     [Value] ->
+                                     [Value]
+addScientificToIntervals _ _ _ _ [] = error "Provided empty list!!"
+addScientificToIntervals s f x remaining (y:[]) = 
+    [mergeObjects (object [DT.pack s .= Number (f remaining)]) y]
+addScientificToIntervals s f x remaining (y:ys) =
+    resultObj : addScientificToIntervals s f x (remaining - x) ys
+        where resultObj = mergeObjects (object [DT.pack s .= Number (f x)]) y
+
+addDistanceToIntervals :: Int -> Int -> [Value] -> [Value]
+addDistanceToIntervals = addScientificToIntervals "distance" intToScientific
+
+addTimeToIntervals :: DiffTime -> DiffTime -> [Value] -> [Value]
+addTimeToIntervals = addScientificToIntervals "time" tenthsToScientific
 
 inIO :: Monad m => (a -> b) -> a -> m b
 inIO f = return . f
