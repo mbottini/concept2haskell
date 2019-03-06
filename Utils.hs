@@ -123,5 +123,51 @@ addDistanceToIntervals = addScientificToIntervals "distance" intToScientific
 addTimeToIntervals :: DiffTime -> DiffTime -> [Value] -> [Value]
 addTimeToIntervals = addScientificToIntervals "time" tenthsToScientific
 
+-- Anu Dudhia has the following formula for the Concept2's calorie conversion
+-- on a page of his personal website at
+-- http://eodg.atm.ox.ac.uk/user/dudhia/rowing/physics/ergometer.html#section11
+-- 
+-- E = ( 4 W + 0.35 t ) / 4.2
+-- where E is the number of calories, and W is work in kJ.
+-- Since we have calories and duration, we need to solve for work.
+-- Some simple algebra gets us
+--
+-- W = 7000/80 * (12E - t)
+-- Brief check: More calories in the same duration = more work.
+--              More time, same calories = less work.
+--              I'm happy with this.
+
+convertToJoules :: Rational -> Rational -> Rational
+convertToJoules secs cals = 7000/80 * (12*cals - secs)
+
+-- 
+-- Since we have work and duration, we can get watts by dividing them.
+-- 
+
+convertToWatts :: Rational -> Rational -> Rational
+convertToWatts secs joules = joules / secs
+
+-- machars.net provides a formula to convert watts to meters per second as
+-- follows:
+--
+-- v = (P / 2.8)^(1/3)
+-- where v is in meters per second, and P is watts.
+
+convertToVelocity :: Floating a => Rational -> a
+convertToVelocity watts = ((fromRational watts) / 2.8)**(1/3)
+
+-- Putting them together...
+
+calsToMeters :: DiffTime -> Int -> Int
+calsToMeters dt = floor .
+                  (* (fromRational secs)) .
+                  convertToVelocity . 
+                  convertToWatts secs .
+                  convertToJoules secs .
+                  fromIntegral
+    where secs = toRational dt
+
 inIO :: Monad m => (a -> b) -> a -> m b
 inIO f = return . f
+
+
