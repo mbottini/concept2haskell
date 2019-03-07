@@ -1,8 +1,11 @@
+{-# LANGUAGE OverloadedStrings #-} -- Needed for JSON string assignments
+
 module DataTypes.DistanceIntervalFrame where
 
 import qualified Utils
 import Data.Word
 import Data.Time.Clock
+import Data.Aeson
 
 data DistanceIntervalFrame = DistanceIntervalFrame {
     duration :: DiffTime,
@@ -19,3 +22,7 @@ parseDistanceIntervalFrame ws = DistanceIntervalFrame {
     strokesPerMinute = fromIntegral . (!! 4) $ ws
 }
 
+instance ToJSON DistanceIntervalFrame where
+    toJSON dif = object [
+        "time" .= (Utils.tenthsToScientific . duration $ dif),
+        "stroke_rate" .= (Utils.intToScientific . strokesPerMinute $ dif)]

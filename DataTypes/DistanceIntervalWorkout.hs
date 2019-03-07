@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-} -- Needed for JSON string assignments
+
 module DataTypes.DistanceIntervalWorkout where
 
 import qualified DataTypes.TableEntry as Te
@@ -7,6 +9,7 @@ import qualified Utils
 import qualified DataTypes.Consts as Consts
 import Data.Word
 import Data.Aeson
+import Data.Aeson.Types
 
 data DistanceIntervalWorkout = DistanceIntervalWorkout {
     tableEntry :: Te.TableEntry,
@@ -41,3 +44,17 @@ getFrames te ds = DistanceIntervalWorkout {
           offset = Te.recordOffset te
           index = Te.recordSize te
 
+instance ToJSON DistanceIntervalWorkout where
+    toJSON w = Utils.mergeObjects splits (toJSON (header w))
+        where splits = (object ["workout" .= object ["intervals" .= fs],
+                               "stroke_rate" .= Number (Utils.intToScientific .
+                                                        Utils.average . 
+                                                        map Dif.strokesPerMinute .
+                                                        frames $ w)])
+              numIntervals = Dih.numSplits . header $ w
+              t = Dih.splitSize . header $ w
+              total = numIntervals * t
+              fs = listValue id . 
+                   Utils.addDistanceToIntervals t total .
+                   map toJSON . 
+                   frames $ w

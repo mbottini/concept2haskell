@@ -46,7 +46,11 @@ getFrames te ds = TimeIntervalWorkout {
 
 instance ToJSON TimeIntervalWorkout where
     toJSON w = Utils.mergeObjects splits (toJSON (header w))
-        where splits = (object ["workout" .= object ["intervals" .= fs]])
+        where splits = (object ["workout" .= object ["intervals" .= fs],
+                               "stroke_rate" .= Number (Utils.intToScientific .
+                                                        Utils.average . 
+                                                        map Tif.strokesPerMinute .
+                                                        frames $ w)])
               numIntervals = Tih.numSplits . header $ w
               t = Tih.splitSize . header $ w
               total = Utils.multiplyInterval numIntervals t
