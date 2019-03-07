@@ -6,7 +6,6 @@ import qualified Utils
 import Data.Time.Clock
 import Data.Word
 import Data.Aeson
-import Data.Scientific
 
 data DistanceFrame = DistanceFrame {
     duration :: DiffTime,

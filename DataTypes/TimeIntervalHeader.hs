@@ -1,9 +1,15 @@
+{-# LANGUAGE OverloadedStrings #-} -- Needed for JSON string assignments
+
 module DataTypes.TimeIntervalHeader where
 
 import Data.Time.Clock
 import Data.Word
+import Data.Aeson
+import Data.Text
 import qualified DataTypes.WorkoutType as Wt
 import qualified Utils
+
+
 
 data TimeIntervalHeader = TimeIntervalHeader {
     workoutType :: Wt.WorkoutType,
@@ -31,3 +37,13 @@ parseTimeIntervalHeader ws = TimeIntervalHeader {
     totalDistance = Utils.parseBigEndian . Utils.grabChunk 24 4 $ ws,
     totalRestDistance = Utils.parseBigEndian . Utils.grabChunk 28 2 $ ws
 }
+
+instance ToJSON TimeIntervalHeader where
+    toJSON h = object [
+        "workout_type" .= String "FixedTimeInterval" ,
+        "date" .= String (pack . show . timeStamp $ h),
+        "distance" .= Number (Utils.intToScientific . totalDistance $ h),
+        "rest_distance" .= Number (Utils.intToScientific . totalRestDistance $ h),
+        "time" .= Number (Utils.tenthsToScientific . splitSize $ h),
+        "weight_class" .= String "H"
+        ]

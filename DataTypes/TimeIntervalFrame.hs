@@ -1,6 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-} -- Needed for JSON string assignments
+
 module DataTypes.TimeIntervalFrame where
 
 import Data.Word
+import Data.Aeson
 import qualified Utils
 
 data TimeIntervalFrame = TimeIntervalFrame {
@@ -17,3 +20,8 @@ parseTimeIntervalFrame ws = TimeIntervalFrame {
     restHeartRate = fromIntegral . (!! 3) $ ws,
     strokesPerMinute = fromIntegral . (!! 4) $ ws
 }
+
+instance ToJSON TimeIntervalFrame where
+    toJSON tif = object [
+        "distance" .= Number (Utils.intToScientific . distance $ tif),
+        "stroke_rate" .= Number (Utils.intToScientific . strokesPerMinute $ tif)]

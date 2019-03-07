@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-} -- Needed for JSON string assignments
+
 module DataTypes.TimeIntervalWorkout where
 
 import qualified DataTypes.TableEntry as Te
@@ -6,6 +8,8 @@ import qualified DataTypes.TimeIntervalFrame as Tif
 import qualified Utils
 import qualified DataTypes.Consts as Consts
 import Data.Word
+import Data.Aeson
+import Data.Aeson.Types
 
 data TimeIntervalWorkout = TimeIntervalWorkout {
     tableEntry :: Te.TableEntry,
@@ -39,3 +43,14 @@ getFrames te ds = TimeIntervalWorkout {
     where chunk = Utils.grabChunk offset Consts.intervalHeaderSize ds
           offset = Te.recordOffset te
           index = Te.recordSize te
+
+instance ToJSON TimeIntervalWorkout where
+    toJSON w = Utils.mergeObjects splits (toJSON (header w))
+        where splits = (object ["workout" .= object ["intervals" .= fs]])
+              numIntervals = Tih.numSplits . header $ w
+              t = Tih.splitSize . header $ w
+              total = Utils.multiplyInterval numIntervals t
+              fs = listValue id . 
+                   Utils.addTimeToIntervals t total .
+                   map toJSON . 
+                   frames $ w

@@ -81,6 +81,12 @@ parseSecs = secondsToDiffTime .
             toInteger .
             parseBigEndian
 
+multiplyInterval :: Int -> DiffTime -> DiffTime
+multiplyInterval n = secondsToDiffTime . 
+                     floor . 
+                     (* (fromIntegral n)) . 
+                     toRational
+
 secsToScientific :: DiffTime -> Scientific
 secsToScientific = unsafeFromRational . toRational
 
@@ -166,6 +172,9 @@ calsToMeters dt = floor .
                   convertToJoules secs .
                   fromIntegral
     where secs = toRational dt
+
+average :: [Int] -> Int
+average xs = (sum xs) `div` (length xs)
 
 inIO :: Monad m => (a -> b) -> a -> m b
 inIO f = return . f

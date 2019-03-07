@@ -11,6 +11,7 @@ import qualified DataTypes.TimeIntervalWorkout as Tiw
 import qualified DataTypes.VariableIntervalWorkout as Viw
 import qualified DataTypes.CalorieIntervalWorkout as Ciw
 
+import Data.Aeson
 import Data.Word
 
 data Workout = FixedDistanceWorkout Fdw.FixedDistanceWorkout |
@@ -32,3 +33,8 @@ getFrames te bs = case Te.workoutType te of
    Wt.VariableInterval -> VariableIntervalWorkout $ Viw.getFrames te bs
    Wt.SingleCalorie -> FixedCalorieWorkout $ Fcw.getFrames te bs
    Wt.CalorieInterval -> CalorieIntervalWorkout $ Ciw.getFrames te bs
+
+instance ToJSON Workout where
+    toJSON (FixedDistanceWorkout w) = toJSON w
+    toJSON (TimeIntervalWorkout w) = toJSON w
+    toJSON _ = error "Not implemented yet!"

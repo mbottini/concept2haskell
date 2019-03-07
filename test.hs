@@ -2,6 +2,7 @@ import qualified Data.ByteString.Lazy as B
 import Data.Word
 import Data.Binary.Get
 import Data.Time.Clock
+import Data.Aeson
 
 import qualified DataTypes.TableEntry as Te
 import qualified DataTypes.Workout as W
@@ -42,4 +43,5 @@ main = do
     entries <- getTableEntries "LogDataAccessTbl.bin"
     workoutData <- getLogDataAccessData "LogDataStorage.bin"
     let workouts = getWorkouts entries workoutData
-    mapM (putStrLn . show) workouts
+    mapM_ (putStrLn . show) workouts
+    mapM_ (putStrLn . show . encode . toJSON) workouts
