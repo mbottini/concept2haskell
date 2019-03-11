@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-} -- Needed for JSON string assignments
+
 module DataTypes.FixedTimeWorkout where
 
 import qualified DataTypes.TableEntry as Te
@@ -6,6 +8,8 @@ import qualified DataTypes.TimeFrame as Tf
 import qualified Utils
 import qualified DataTypes.Consts as Consts
 import Data.Word
+import Data.Aeson
+import Data.Aeson.Types
 
 data FixedTimeWorkout = FixedTimeWorkout {
     tableEntry :: Te.TableEntry,
@@ -39,3 +43,13 @@ getFrames te bs = FixedTimeWorkout {
     where chunk = Utils.grabChunk offset Consts.fixedHeaderSize bs
           offset = Te.recordOffset te
           index = Te.recordSize te
+
+instance ToJSON FixedTimeWorkout where
+    toJSON w = Utils.mergeObjects splits (toJSON (header w))
+        where splits = (object ["workout" .= object ["splits" .= fs]])
+              total = Fth.totalDuration . header $ w
+              t = Fth.splitSize . header $ w
+              fs = listValue id .
+                   Utils.addTimeToIntervals t total .
+                   map toJSON .
+                   frames $ w
