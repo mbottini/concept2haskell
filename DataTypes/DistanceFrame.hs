@@ -26,3 +26,19 @@ instance ToJSON DistanceFrame where
         "time" .= Number (Utils.tenthsToScientific . duration $ df),
         "stroke_rate" .= Number (Utils.intToScientific . strokesPerMinute $ df)]
 -- TODO: Heartrate?
+
+getMetersFromDf :: Int -> DistanceFrame -> Int
+getMetersFromDf cals dif = Utils.calsToMeters (duration dif) cals
+
+-- We're performing an additional function here, so we can't abstract it
+-- with addScientificToIntervals. We'd need to apply the identity function
+-- with the first two cases, which is silly.
+
+addCalDistanceToSplits :: Int -> Int -> [DistanceFrame] -> [Value]
+addCalDistanceToSplits _ _ [] = error "Provided empty list!!"
+addCalDistanceToSplits _ remaining (y:[]) =
+    [Utils.mergeObjects (object ["distance" .= Number (Utils.intToScientific remaining)]) (toJSON y)]
+addCalDistanceToSplits x remaining (y:ys) =
+    resultObj : addCalDistanceToSplits x (remaining - ms) ys
+        where ms = getMetersFromDf x y
+              resultObj = Utils.mergeObjects (object ["distance" .= Number (Utils.intToScientific ms)]) (toJSON y)
