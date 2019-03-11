@@ -176,6 +176,14 @@ calsToMeters dt = floor .
 average :: [Int] -> Int
 average xs = (sum xs) `div` (length xs)
 
+averageWeighted :: [(DiffTime, Int)] -> Int
+averageWeighted xs = floor $ (fromIntegral allStrokes) / ((toRational totalTime) / 60)
+    where allStrokes = sum (map (uncurry totalStrokes) xs)
+          totalTime = sum (map fst xs)
+
+totalStrokes :: DiffTime -> Int -> Int
+totalStrokes t spm = floor $ toRational t * (fromIntegral spm) / 60
+
 inIO :: Monad m => (a -> b) -> a -> m b
 inIO f = return . f
 

@@ -36,7 +36,8 @@ getFrames te bs = case Te.workoutType te of
 
 instance ToJSON Workout where
     toJSON (FixedDistanceWorkout w) = toJSON w
+    toJSON (FixedTimeWorkout w) = toJSON w
     toJSON (TimeIntervalWorkout w) = toJSON w
     toJSON (DistanceIntervalWorkout w) = toJSON w
-    toJSON (FixedTimeWorkout w) = toJSON w
+    toJSON (VariableIntervalWorkout w) = toJSON w
     toJSON _ = error "Not implemented yet!"

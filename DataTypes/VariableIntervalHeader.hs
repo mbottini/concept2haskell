@@ -1,9 +1,13 @@
+{-# LANGUAGE OverloadedStrings #-} -- Needed for JSON string assignments
+
 module DataTypes.VariableIntervalHeader where
 
 import qualified DataTypes.WorkoutType as Wt
 import qualified Utils
 import Data.Word
 import Data.Time.Clock
+import Data.Aeson
+import Data.Text
 
 data VariableIntervalHeader = VariableIntervalHeader {
     workoutType :: Wt.WorkoutType,
@@ -28,3 +32,9 @@ parseVariableIntervalHeader ws = VariableIntervalHeader {
     totalWorkDistance = Utils.parseBigEndian . Utils.grabChunk 24 4 $ ws
 }
 
+instance ToJSON VariableIntervalHeader where
+    toJSON h = object [
+        "workout_type" .= String "VariableInterval" ,
+        "date" .= String (pack . show . timeStamp $ h),
+        "distance" .= Number (Utils.intToScientific . totalWorkDistance $ h),
+        "weight_class" .= String "H"]
