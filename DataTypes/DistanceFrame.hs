@@ -22,7 +22,6 @@ parseDistanceFrame ws = DistanceFrame {
 
 instance ToJSON DistanceFrame where
     toJSON df = object [ 
-        "type" .= String "distance",
         "time" .= Number (Utils.tenthsToScientific . duration $ df),
         "stroke_rate" .= Number (Utils.intToScientific . strokesPerMinute $ df)]
 -- TODO: Heartrate?
