@@ -5,6 +5,7 @@ import Data.Word
 import Data.Time
 import Data.Scientific
 import Data.Aeson
+import qualified Data.Vector
 import qualified Data.HashMap.Lazy as HML
 import qualified Data.Text as DT
 
@@ -186,6 +187,9 @@ averageWeighted xs = floor $ (fromIntegral allStrokes) / ((toRational totalTime)
 
 totalStrokes :: DiffTime -> Int -> Int
 totalStrokes t spm = floor $ toRational t * (fromIntegral spm) / 60
+
+listJSONToObj :: [Value] -> Value
+listJSONToObj xs = Array (Data.Vector.fromList xs)
 
 inIO :: Monad m => (a -> b) -> a -> m b
 inIO f = return . f
