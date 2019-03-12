@@ -8,6 +8,7 @@ import Data.Aeson
 import qualified Data.Vector
 import qualified Data.HashMap.Lazy as HML
 import qualified Data.Text as DT
+import Data.Time.LocalTime
 
 parseLittleEndian :: [Word8] -> Int
 parseLittleEndian [] = 0
@@ -194,4 +195,23 @@ listJSONToObj xs = Array (Data.Vector.fromList xs)
 inIO :: Monad m => (a -> b) -> a -> m b
 inIO f = return . f
 
+-- Needs to be IO because the timezone is whatever is local to the computer.
+formatTimeStamp :: TimeZone -> UTCTime -> [Char]
+formatTimeStamp z = formatTime defaultTimeLocale "%F %T" .
+                    utcToLocalTime z
 
+-- 2019-02-25 13:12:00 UTC
+
+transformUTCStamp :: TimeZone -> Value -> Value
+transformUTCStamp tz (Object x) = 
+    Object (HML.insert "date" (String . DT.pack $(formatTimeStamp tz stamp)) x)
+    where stamp = case (HML.lookup "date" x) of
+            (Just (String s)) -> parseTimeOrError True defaultTimeLocale "%F %T UTC" (DT.unpack s)
+            Nothing -> error "Object does not contain timestamp!"
+transformUTCStamp tz _ = error "Non-object value passed to function!"
+
+transformUTCStampLocal :: Value -> IO Value
+transformUTCStampLocal v = do
+    tz <- getCurrentTimeZone
+    return (transformUTCStamp tz v)
+    

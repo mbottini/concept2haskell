@@ -10,6 +10,7 @@ import qualified DataTypes.DistanceIntervalWorkout as Diw
 import qualified DataTypes.TimeIntervalWorkout as Tiw
 import qualified DataTypes.VariableIntervalWorkout as Viw
 import qualified DataTypes.CalorieIntervalWorkout as Ciw
+import qualified Utils
 
 import Data.Aeson
 import Data.Word
@@ -43,3 +44,6 @@ instance ToJSON Workout where
     toJSON (CalorieIntervalWorkout w) = toJSON w
     toJSON (FixedCalorieWorkout w) = toJSON w
     toJSON _ = error "Not implemented yet!"
+
+toLocalTime :: Workout -> IO Value
+toLocalTime w = return w >>= Utils.inIO toJSON >>= Utils.transformUTCStampLocal
