@@ -24,6 +24,6 @@ parseDistanceIntervalFrame ws = DistanceIntervalFrame {
 
 instance ToJSON DistanceIntervalFrame where
     toJSON dif = object [
-        "type" .= "distance",
+        "type" .= String "distance",
         "time" .= (Utils.tenthsToScientific . duration $ dif),
         "stroke_rate" .= (Utils.intToScientific . strokesPerMinute $ dif)]
