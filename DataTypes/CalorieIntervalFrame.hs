@@ -32,3 +32,7 @@ instance ToJSON CalorieIntervalFrame where
 getMetersFromCif :: Int -> CalorieIntervalFrame -> Int
 getMetersFromCif cals cif = Utils.calsToMeters (duration cif) cals
 
+insertDistance :: Int -> CalorieIntervalFrame -> Value
+insertDistance cals cif = Utils.mergeObjects (toJSON cif)
+                                            (object ["distance" .= d])
+    where d = Utils.calsToMeters (duration cif) cals

@@ -100,6 +100,9 @@ mergeObjects :: Value -> Value -> Value
 mergeObjects (Object x) (Object y) = Object $ HML.union x y
 mergeObjects _ _ = error "Can't merge non-object values!"
 
+addAttribute :: String -> Value -> Value -> Value
+addAttribute s val (Object x) = Object $ HML.insert (DT.pack s) val x
+addAttribute _ _ _ = error "Can only add attribute to object!"
 
 -- Concept2 allows the user to have "partial" splits. Say that I row for eleven
 -- minutes. I can set the split to 2 minutes, which means that the final split

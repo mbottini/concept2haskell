@@ -40,4 +40,6 @@ instance ToJSON Workout where
     toJSON (TimeIntervalWorkout w) = toJSON w
     toJSON (DistanceIntervalWorkout w) = toJSON w
     toJSON (VariableIntervalWorkout w) = toJSON w
+    toJSON (CalorieIntervalWorkout w) = toJSON w
+    toJSON (FixedCalorieWorkout w) = toJSON w
     toJSON _ = error "Not implemented yet!"
