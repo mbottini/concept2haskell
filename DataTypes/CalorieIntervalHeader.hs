@@ -1,9 +1,13 @@
+{-# LANGUAGE OverloadedStrings #-} -- Needed for JSON string assignments
+
 module DataTypes.CalorieIntervalHeader where
 
 import Data.Time.Clock
 import Data.Word
 import qualified DataTypes.WorkoutType as Wt
 import qualified Utils
+import Data.Aeson
+import Data.Text
 
 data CalorieIntervalHeader = CalorieIntervalHeader {
     workoutType :: Wt.WorkoutType,
@@ -31,3 +35,11 @@ parseCalorieIntervalHeader ws = CalorieIntervalHeader {
     totalTime = Utils.parseDuration . Utils.grabChunk 24 4 $ ws,
     totalRestDistance = Utils.parseBigEndian . Utils.grabChunk 28 2 $ ws
 }
+
+instance ToJSON CalorieIntervalHeader where
+    toJSON h = object [
+        "workout_type" .= String "FixedCalorie" ,
+        "date" .= String (pack . show . timeStamp $ h),
+        "time" .= Number (Utils.tenthsToScientific . totalTime $ h),
+        "rest_distance" .= Number (Utils.intToScientific . totalRestDistance $ h),
+        "weight_class" .= String "H"]

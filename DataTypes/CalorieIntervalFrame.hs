@@ -1,8 +1,11 @@
+{-# LANGUAGE OverloadedStrings #-} -- Needed for JSON string assignments
+
 module DataTypes.CalorieIntervalFrame where
 
 import qualified Utils
 import Data.Word
 import Data.Time.Clock
+import Data.Aeson
 
 data CalorieIntervalFrame = CalorieIntervalFrame {
     duration :: DiffTime,
@@ -18,4 +21,14 @@ parseCalorieIntervalFrame ws = CalorieIntervalFrame {
     restHeartRate = fromIntegral . (!! 3) $ ws,
     strokesPerMinute = fromIntegral . (!! 4) $ ws
 }
+
+instance ToJSON CalorieIntervalFrame where
+    toJSON cif = object [
+        "type" .= String "calorie",
+        "time" .= Number (Utils.tenthsToScientific . duration $ cif),
+        "stroke_rate" .= Number (Utils.intToScientific . strokesPerMinute $ cif)
+        ]
+
+getMetersFromCif :: Int -> CalorieIntervalFrame -> Int
+getMetersFromCif cals cif = Utils.calsToMeters (duration cif) cals
 
