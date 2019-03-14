@@ -2,7 +2,7 @@
 
 module DataTypes.CalorieIntervalHeader where
 
-import Data.Time.Clock
+import Data.Time
 import Data.Word
 import qualified DataTypes.WorkoutType as Wt
 import qualified Utils
@@ -12,7 +12,7 @@ import Data.Text
 data CalorieIntervalHeader = CalorieIntervalHeader {
     workoutType :: Wt.WorkoutType,
     serialNumber :: Int,
-    timeStamp :: UTCTime,
+    timeStamp :: LocalTime,
     userID :: Int,
     recordID :: Int,
     numSplits :: Int,

@@ -55,13 +55,20 @@ allButLast [] = []
 allButLast (x:[]) = []
 allButLast (x:xs) = x : allButLast xs
 
+{-
 createUTCTime :: Int -> Int -> Int -> Int -> Int -> UTCTime
 createUTCTime year month day hours minutes = UTCTime date diff
     where date = fromGregorian (fromIntegral year) month day
           diff = secondsToDiffTime . fromIntegral $ (60*minutes + 3600*hours)
+-}
 
-parseDateStamp :: [Word8] -> UTCTime
-parseDateStamp xs = createUTCTime year month day hours minutes
+createLocalTime :: Int -> Int -> Int -> Int -> Int -> LocalTime
+createLocalTime year month day hours minutes = LocalTime date time
+    where date = fromGregorian (fromIntegral year) month day
+          time = TimeOfDay hours minutes 0
+
+parseDateStamp :: [Word8] -> LocalTime
+parseDateStamp xs = createLocalTime year month day hours minutes
     where bits = wordsToBitsReverse xs
           year = parseYear . grabChunk 0 7 $ bits
           day = bitsToInt . reverse . grabChunk 7 5 $ bits
@@ -196,9 +203,8 @@ inIO :: Monad m => (a -> b) -> a -> m b
 inIO f = return . f
 
 -- Needs to be IO because the timezone is whatever is local to the computer.
-formatTimeStamp :: TimeZone -> UTCTime -> [Char]
-formatTimeStamp z = formatTime defaultTimeLocale "%F %T" .
-                    utcToLocalTime z
+formatTimeStamp :: TimeZone -> LocalTime -> [Char]
+formatTimeStamp z = formatTime defaultTimeLocale "%F %T" . localTimeToUTC z
 
 -- 2019-02-25 13:12:00 UTC
 
@@ -206,7 +212,7 @@ transformUTCStamp :: TimeZone -> Value -> Value
 transformUTCStamp tz (Object x) = 
     Object (HML.insert "date" (String . DT.pack $(formatTimeStamp tz stamp)) x)
     where stamp = case (HML.lookup "date" x) of
-            (Just (String s)) -> parseTimeOrError True defaultTimeLocale "%F %T UTC" (DT.unpack s)
+            (Just (String s)) -> parseTimeOrError True defaultTimeLocale "%F %T" (DT.unpack s)
             Nothing -> error "Object does not contain timestamp!"
 transformUTCStamp tz _ = error "Non-object value passed to function!"
 

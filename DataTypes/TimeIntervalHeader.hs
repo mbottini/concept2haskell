@@ -2,7 +2,7 @@
 
 module DataTypes.TimeIntervalHeader where
 
-import Data.Time.Clock
+import Data.Time
 import Data.Word
 import Data.Aeson
 import Data.Text
@@ -14,7 +14,7 @@ import qualified Utils
 data TimeIntervalHeader = TimeIntervalHeader {
     workoutType :: Wt.WorkoutType,
     serialNumber :: Int,
-    timeStamp :: UTCTime,
+    timeStamp :: LocalTime,
     userID :: Int,
     recordID :: Int,
     numSplits :: Int,

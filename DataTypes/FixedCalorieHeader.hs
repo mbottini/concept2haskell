@@ -12,7 +12,7 @@ import Data.Text
 data FixedCalorieHeader = FixedCalorieHeader {
     workoutType :: Wt.WorkoutType,
     serialNumber :: Int,
-    timeStamp :: UTCTime,
+    timeStamp :: LocalTime,
     userID :: Int,
     recordID :: Int,
     totalDuration :: DiffTime,

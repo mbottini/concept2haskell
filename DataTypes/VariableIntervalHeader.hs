@@ -5,14 +5,14 @@ module DataTypes.VariableIntervalHeader where
 import qualified DataTypes.WorkoutType as Wt
 import qualified Utils
 import Data.Word
-import Data.Time.Clock
+import Data.Time
 import Data.Aeson
 import Data.Text
 
 data VariableIntervalHeader = VariableIntervalHeader {
     workoutType :: Wt.WorkoutType,
     serialNumber :: Int,
-    timeStamp :: UTCTime,
+    timeStamp :: LocalTime,
     userID :: Int,
     recordID :: Int,
     numSplits :: Int,
