@@ -23,5 +23,6 @@ parseTimeIntervalFrame ws = TimeIntervalFrame {
 
 instance ToJSON TimeIntervalFrame where
     toJSON tif = object [
+        "type" .= String "time",
         "distance" .= Number (Utils.intToScientific . distance $ tif),
         "stroke_rate" .= Number (Utils.intToScientific . strokesPerMinute $ tif)]

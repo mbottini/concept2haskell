@@ -44,6 +44,9 @@ instance ToJSON TimeIntervalHeader where
         "date" .= String (pack . show . timeStamp $ h),
         "distance" .= Number (Utils.intToScientific . totalDistance $ h),
         "rest_distance" .= Number (Utils.intToScientific . totalRestDistance $ h),
+        "rest_time" .= Number (Utils.tenthsToScientific . 
+                               Utils.multiplyInterval (numSplits h) .
+                               restTime $ h),
         "time" .= Number (Utils.tenthsToScientific . splitSize $ h),
         "weight_class" .= String "H"
         ]

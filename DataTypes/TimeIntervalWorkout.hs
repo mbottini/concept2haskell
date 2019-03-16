@@ -56,5 +56,6 @@ instance ToJSON TimeIntervalWorkout where
               total = Utils.multiplyInterval numIntervals t
               fs = listValue id . 
                    Utils.addTimeToIntervals t total .
+                   map (Utils.addAttribute "rest_time" (Number $ Utils.tenthsToScientific . Tih.restTime . header $ w)) .
                    map toJSON . 
                    frames $ w

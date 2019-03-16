@@ -56,5 +56,6 @@ instance ToJSON DistanceIntervalWorkout where
               total = numIntervals * t
               fs = listValue id . 
                    Utils.addDistanceToIntervals t total .
+                   map (Utils.addAttribute "rest_time" (Number $ Utils.tenthsToScientific . Dih.restTime . header $ w)) .
                    map toJSON . 
                    frames $ w
