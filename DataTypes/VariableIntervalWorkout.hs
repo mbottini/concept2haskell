@@ -61,6 +61,11 @@ instance ToJSON VariableIntervalWorkout where
                                     (Utils.tenthsToScientific .
                                     sum .
                                     map Vif.intervalRestTime .
+                                    frames $ w),
+                                "time" .= Number
+                                    (Utils.tenthsToScientific .
+                                    sum .
+                                    map Vif.workIntervalTime .
                                     frames $ w)])
               fs = listValue id . 
                    map toJSON . 
