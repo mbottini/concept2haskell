@@ -1,6 +1,8 @@
 *.bin
 *.o
 *.hi
-test
+ergparse
 *.pdf
 *.swp
+images/
+*.json
