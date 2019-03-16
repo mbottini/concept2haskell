@@ -50,7 +50,11 @@ instance ToJSON DistanceIntervalWorkout where
                                "stroke_rate" .= Number (Utils.intToScientific .
                                                         Utils.average . 
                                                         map Dif.strokesPerMinute .
-                                                        frames $ w)])
+                                                        frames $ w),
+                               "distance" .= Number (Utils.intToScientific .
+                                                     (* numIntervals) . 
+                                                     Dih.splitSize .
+                                                     header $ w)])
               numIntervals = Dih.numSplits . header $ w
               t = Dih.splitSize . header $ w
               total = numIntervals * t
