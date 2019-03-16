@@ -38,6 +38,7 @@ parseFixedCalorieHeader lst = FixedCalorieHeader {
 
 instance ToJSON FixedCalorieHeader where
     toJSON h = object [
+        "type" .= String "rower",
         "workout_type" .= String "FixedCalorie" ,
         "date" .= String (pack . show . timeStamp $ h),
         "distance" .= Number (Utils.intToScientific . totalDistance $ h),
