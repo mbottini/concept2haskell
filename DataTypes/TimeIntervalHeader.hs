@@ -48,6 +48,5 @@ instance ToJSON TimeIntervalHeader where
         "rest_time" .= Number (Utils.tenthsToScientific . 
                                Utils.multiplyInterval (numSplits h) .
                                restTime $ h),
-        "time" .= Number (Utils.tenthsToScientific . splitSize $ h),
         "weight_class" .= String "H"
         ]

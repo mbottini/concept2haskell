@@ -50,7 +50,11 @@ instance ToJSON TimeIntervalWorkout where
                                "stroke_rate" .= Number (Utils.intToScientific .
                                                         Utils.average . 
                                                         map Tif.strokesPerMinute .
-                                                        frames $ w)])
+                                                        frames $ w),
+                               "time" .= Number (Utils.tenthsToScientific .
+                                                 Utils.multiplyInterval numIntervals .
+                                                 Tih.splitSize .
+                                                 header $ w)])
               numIntervals = Tih.numSplits . header $ w
               t = Tih.splitSize . header $ w
               total = Utils.multiplyInterval numIntervals t
