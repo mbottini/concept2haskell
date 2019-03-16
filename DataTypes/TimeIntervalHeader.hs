@@ -40,6 +40,7 @@ parseTimeIntervalHeader ws = TimeIntervalHeader {
 
 instance ToJSON TimeIntervalHeader where
     toJSON h = object [
+        "type" .= String "rower",
         "workout_type" .= String "FixedTimeInterval" ,
         "date" .= String (pack . show . timeStamp $ h),
         "distance" .= Number (Utils.intToScientific . totalDistance $ h),

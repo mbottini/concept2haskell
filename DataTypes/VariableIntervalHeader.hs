@@ -34,7 +34,8 @@ parseVariableIntervalHeader ws = VariableIntervalHeader {
 
 instance ToJSON VariableIntervalHeader where
     toJSON h = object [
-        "workout_type" .= String "VariableInterval" ,
+        "type" .= String "rower",
+        "workout_type" .= String "VariableInterval",
         "date" .= String (pack . show . timeStamp $ h),
         "distance" .= Number (Utils.intToScientific . totalWorkDistance $ h),
         "weight_class" .= String "H"]

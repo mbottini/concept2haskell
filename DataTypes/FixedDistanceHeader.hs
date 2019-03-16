@@ -38,7 +38,8 @@ parseFixedDistanceHeader lst = FixedDistanceHeader {
 
 instance ToJSON FixedDistanceHeader where
     toJSON h = object [
-        "workout_type" .= String "FixedDistanceSplits" ,
+        "type" .= String "rower",
+        "workout_type" .= String "FixedDistanceSplits",
         "date" .= String (pack . show . timeStamp $ h),
         "distance" .= Number (Utils.intToScientific . totalDistance $ h),
         "time" .= Number (Utils.tenthsToScientific . totalDuration $ h),

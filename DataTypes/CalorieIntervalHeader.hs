@@ -38,7 +38,8 @@ parseCalorieIntervalHeader ws = CalorieIntervalHeader {
 
 instance ToJSON CalorieIntervalHeader where
     toJSON h = object [
-        "workout_type" .= String "FixedCalorie" ,
+        "type" .= String "rower",
+        "workout_type" .= String "FixedCalorie",
         "date" .= String (pack . show . timeStamp $ h),
         "time" .= Number (Utils.tenthsToScientific . totalTime $ h),
         "rest_distance" .= Number (Utils.intToScientific . totalRestDistance $ h),

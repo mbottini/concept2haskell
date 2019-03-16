@@ -38,6 +38,7 @@ parseDistanceIntervalHeader ws = DistanceIntervalHeader {
 
 instance ToJSON DistanceIntervalHeader where
     toJSON h = object [
+        "type" .= String "rower",
         "workout_type" .= String "FixedTimeInterval",
         "date" .= String (pack . show . timeStamp $ h),
         "rest_distance" .= Number (Utils.intToScientific . totalRestDistance $ h),
