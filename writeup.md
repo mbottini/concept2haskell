@@ -560,6 +560,12 @@ demands a JSON object of a particular format. A simplified format is as follows:
         }
     }
 
+Enter `Data.Aeson`, an external library that has a bunch of functionality
+for parsing JSON to Haskell types and serializing Haskell types to JSON.
+I'm using very little of its functionality, as I'm only serializing. So,
+the extent of my use of this library consists of making each of my types
+into `instance`s of `ToJSON`.
+
 In some cases, there is a 1:1 correspondence. For example, the JSON object
 must include the date, and there is a datestamp in the header. However,
 others are not so simple. For example, each split must contain the distance
@@ -576,6 +582,51 @@ data from the frames and put it into the object. For example, the
 VariableDistance workout does not have an average stroke rate for the workout.
 Instead, we have to calculate it from the stroke rates of each interval.
 
+Thus, we build as much of an object as we can at the `Frame` and `Header`
+level, and then at the `Workout` level, where we have access to both `Object`s,
+we merge them and add more fields with attributes from both `Object`s.
+
+Here's an example from our friend the `DistanceIntervalWorkout`. It's ugly,
+and there was probably a better way to do this.
+
+    instance ToJSON DistanceIntervalWorkout where
+        toJSON w = Utils.mergeObjects splits (toJSON (header w))
+            where splits = (object ["workout" .= object ["intervals" .= fs],
+                                   "stroke_rate" .= Number (Utils.intToScientific .
+                                                            Utils.average . 
+                                                            map Dif.strokesPerMinute .
+                                                            frames $ w),
+                                   "distance" .= Number (Utils.intToScientific .
+                                                         (* numIntervals) . 
+                                                         Dih.splitSize .
+                                                         header $ w)])
+                  numIntervals = Dih.numSplits . header $ w
+                  t = Dih.splitSize . header $ w
+                  total = numIntervals * t
+                  fs = listValue id . 
+                       Utils.addDistanceToIntervals t total .
+                       map (Utils.addAttribute "rest_time" 
+                           (Number $ 
+                               Utils.tenthsToScientific . 
+                               Dih.restTime . 
+                               header $ w)) .
+                       map toJSON . 
+                       frames $ w
+
+The "splits" are actually intervals here - that's the object that contains the
+interval data. The remainder is doing things like the following:
+
+* Adding an attribute `"rest_time"` to each `Frame` object.
+* Adding an attribute `"distance"` to each `Frame` object.
+* Combining the list of `Object`s into a single `Array` value (`listValue id`
+is a crude way of doing this).
+
+Other JSON implementations are similarly ugly due to this need to access values
+from both objects, do calculations on them, and then add the results to the
+objects themselves. Any individual step isn't too hard, but it piles up really
+quickly and becomes unmanageable. I don't like it, and my guess is that my
+approach was fundamentally flawed.
+
 ## Endgame
 
 I wasn't able to get to this because Concept2's response time is very slow, but
@@ -586,9 +637,9 @@ with some background questions on my program a couple weeks ago. I'll
 probably get some sort of response from them sometime in May. So, I've sadly
 resorted to using their online validator tool at 
 https://log.concept2.com/developers/validator. This is a tool from Concept2 to
-check to see if a JSON object meets their requirements.
-
-
+check to see if a JSON object meets their requirements. I can copy-paste
+the object into their field, and it will print its interpretation of the object
+and whether it's a valid object. And that's that.
 
 # Objective 7
 
