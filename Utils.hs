@@ -40,10 +40,7 @@ bitsToInt (True:xs) = 1 + 2 * (bitsToInt xs)
 bitsToInt (False:xs) = 2 * (bitsToInt xs)
 
 grabChunk :: Int -> Int -> [a] -> [a]
-grabChunk 0 0 _  = []
-grabChunk _ _ [] = []
-grabChunk 0 amount (x:xs) = x : grabChunk 0 (amount-1) xs
-grabChunk offset amount (x:xs) = grabChunk (offset-1) amount xs
+grabChunk offset amount = take amount . drop offset
 
 splitAll :: Int -> [a] -> [[a]]
 splitAll _ [] = []
