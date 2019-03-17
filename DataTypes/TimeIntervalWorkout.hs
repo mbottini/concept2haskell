@@ -45,21 +45,28 @@ getFrames te ds = TimeIntervalWorkout {
           index = Te.recordSize te
 
 instance ToJSON TimeIntervalWorkout where
-    toJSON w = Utils.mergeObjects splits (toJSON (header w))
-        where splits = (object ["workout" .= object ["intervals" .= fs],
-                               "stroke_rate" .= Number (Utils.intToScientific .
-                                                        Utils.average . 
-                                                        map Tif.strokesPerMinute .
-                                                        frames $ w),
-                               "time" .= Number (Utils.tenthsToScientific .
-                                                 Utils.multiplyInterval numIntervals .
-                                                 Tih.splitSize .
-                                                 header $ w)])
+    toJSON w = Utils.mergeObjects derivedValues (toJSON (header w))
+        where derivedValues = (object ["workout" .= object ["intervals" .= fs],
+                                       "stroke_rate" .= sr,
+                                       "time" .= t])
               numIntervals = Tih.numSplits . header $ w
-              t = Tih.splitSize . header $ w
-              total = Utils.multiplyInterval numIntervals t
-              fs = listValue id . 
-                   Utils.addTimeToIntervals t total .
-                   map (Utils.addAttribute "rest_time" (Number $ Utils.tenthsToScientific . Tih.restTime . header $ w)) .
-                   map toJSON . 
-                   frames $ w
+              sr = Number (Utils.intToScientific .
+                           Utils.average . 
+                           map Tif.strokesPerMinute .
+                           frames $ w)
+              t = Number (Utils.tenthsToScientific .
+                           (Utils.multiplyInterval numIntervals) . 
+                           Tih.splitSize .
+                           header $ w)
+              fs = populateFrames (header w) (frames w)
+
+populateFrames :: Tih.TimeIntervalHeader -> 
+                  [Tif.TimeIntervalFrame] ->
+                  Value
+populateFrames tih = 
+    listValue id .
+    map (Utils.addAttribute "rest_time" rt) .
+    map (Utils.addAttribute "time" t) .
+    map toJSON
+        where rt = Number $ Utils.tenthsToScientific . Tih.restTime $ tih
+              t = Number $ Utils.tenthsToScientific . Tih.splitSize $ tih
