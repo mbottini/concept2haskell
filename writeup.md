@@ -476,6 +476,14 @@ There's also a `Workout` sum type that encapsulates every specific `Workout`.
 This allows me to start with a big list of bytes and end up with a `[Workout]`
 list at the end.
 
+I found that **namespaces** were invaluable. Haskell doesn't work the same way
+with object methods as object-oriented languages do. If I have two `Header`
+types and have a `restTime` function to access a field in the types, they
+conflict; there is no overloading allowed. To get around this, I put every type
+in its own separate file and `import qualified`. Now, if I have
+`DistanceIntervalHeader` and `TimeIntervalHeader`, I can call either one with
+`Dih.totalRestTime` and `Tih.totalRestTime`, respectively.
+
 Since we looked at a `DistanceIntervalHeader`, let's look at the
 `DistanceIntervalFrame`. It's a lot simpler, as it holds much less data.
 
@@ -493,6 +501,46 @@ Since we looked at a `DistanceIntervalHeader`, let's look at the
         restHeartRate = fromIntegral . (!! 3) $ ws,
         strokesPerMinute = fromIntegral . (!! 4) $ ws
     }
+
+And lastly, let's look at our overarching `DistanceIntervalWorkout`. Note
+the qualified import abbreviations.
+
+    data DistanceIntervalWorkout = DistanceIntervalWorkout {
+        tableEntry :: Te.TableEntry,
+        header :: Dih.DistanceIntervalHeader,
+        frames :: [Dif.DistanceIntervalFrame]
+    } deriving(Show)
+    
+Just like we have `Utils` functions to parse little chunks of binary data,
+we have the larger `parseTableEntry`, `parseDistanceIntervalHeader`, and
+`parseDistanceIntervalFrame` functions to do the same with larger chunks.
+
+Because the binary data is split between two files, I found that it was
+easier to get all of the `TableEntry` values first, and then use those to
+get the `Header` and `Frame`s for each `Workout`. Each `TableEntry` contains
+the record offset and the record size for its header and frames, so I could
+create a function that takes a `TableEntry` and a list of bytes and returns
+a `Workout`. Each `Workout` contains this `getFrames` function. From
+the `DistanceIntervalWorkout`, and representative of the rest:
+
+    getFrames :: Te.TableEntry -> [Word8] -> DistanceIntervalWorkout
+    getFrames te ds = DistanceIntervalWorkout {
+        tableEntry = te,
+        header = Dih.parseDistanceIntervalHeader chunk,
+        frames = map Dif.parseDistanceIntervalFrame . 
+                 Utils.splitAll Consts.frameSize .
+                 drop Consts.intervalHeaderSize .
+                 Utils.grabChunk offset index $ ds
+    }
+        where chunk = Utils.grabChunk offset Consts.intervalHeaderSize ds
+              offset = Te.recordOffset te
+              index = Te.recordSize te
+
+We get the `offset` and `index` from the `TableEntry`, get a `chunk` of bytes
+from the list, get the `header` from the first `intervalHeaderSize` bytes of
+the `chunk`, and then `splitAll` the remainder of the `chunk` into
+`frameSize`-sized` "subchunks" and get the `frames` from mapping our parse
+function over each of those subchunks.
 
 ## Creating a JSON object
 
