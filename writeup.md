@@ -412,8 +412,87 @@ All of my parsing functions work this way, albeit with composition rather
 than the `>>=` operator. I only use the `IO` monad for the operation of
 getting the list of bytes from the file. There are a variety of these
 functions for converting `Word8` lists to various types, and we'll use
-this to build our own product types containing workout data.
+them to build our own product types containing workout data.
 
+## Type Insanity
+
+Since we've got a ton of fields in the various workouts, we're going to
+want to create product types. We didn't cover it in class, but record
+syntax proved to be extremely helpful here, both for creating the type
+and creating a parsing function. Here's a `DistanceIntervalHeader`
+type as an example.
+
+    import qualified DataTypes.WorkoutType as Wt
+    import qualified Utils
+    -- other imported types like Data.Time
+    
+    data DistanceIntervalHeader = DistanceIntervalHeader {
+        workoutType :: Wt.WorkoutType,
+        serialNumber :: Int,
+        timeStamp :: LocalTime,
+        userID :: Int,
+        recordID :: Int,
+        numSplits :: Int,
+        splitSize :: Int,
+        restTime :: DiffTime,
+        totalTime :: DiffTime,
+        totalRestDistance :: Int
+    } deriving(Show)
+    
+    parseDistanceIntervalHeader :: [Word8] -> DistanceIntervalHeader
+    parseDistanceIntervalHeader ws = DistanceIntervalHeader {
+        workoutType = Wt.parseWorkoutType . fromIntegral . (!! 1) $ ws,
+        serialNumber = Utils.parseBigEndian . Utils.grabChunk 4 4 $ ws,
+        timeStamp = Utils.parseDateStamp . Utils.grabChunk 8 4 $ ws,
+        userID = Utils.parseBigEndian . Utils.grabChunk 12 2 $ ws,
+        recordID = fromIntegral . (!! 18) $ ws,
+        numSplits = fromIntegral . (!! 19) $ ws,
+        splitSize = Utils.parseBigEndian . Utils.grabChunk 20 2 $ ws,
+        restTime = Utils.parseSecs . Utils.grabChunk 22 2 $ ws,
+        totalTime = Utils.parseDuration . Utils.grabChunk 24 4 $ ws,
+        totalRestDistance = Utils.parseBigEndian . Utils.grabChunk 28 2 $ ws
+    }
+
+In short - each type has its definition in record syntax, and a parsing
+function that takes a `[Word8]` and applies the various `Utils` functions
+to parse `chunk`s of the list.
+
+This is ugly, but it's not *that* hard to figure out. Doing this for every one
+of the various types was tedious, though. There were some ways to abstract some
+of it and create some subordinate product types, but the hierarchy itself started
+to get confusing, and I found that it was easier to keep track of what was
+going on with a flatter but more verbose type hierarchy.
+
+By doing it this way, I have three "tedious" sets of types, plus the
+`TableEntry` type.
+
+* Frames - two `Split` frames, and four `Interval` frames.
+
+* Headers - one for each type of workout.
+
+* Workouts - one for each type of workout.
+
+There's also a `Workout` sum type that encapsulates every specific `Workout`.
+This allows me to start with a big list of bytes and end up with a `[Workout]`
+list at the end.
+
+Since we looked at a `DistanceIntervalHeader`, let's look at the
+`DistanceIntervalFrame`. It's a lot simpler, as it holds much less data.
+
+    data DistanceIntervalFrame = DistanceIntervalFrame {
+        duration :: DiffTime,
+        heartRate :: Int,
+        restHeartRate :: Int,
+        strokesPerMinute :: Int
+    } deriving(Show)
+    
+    parseDistanceIntervalFrame :: [Word8] -> DistanceIntervalFrame
+    parseDistanceIntervalFrame ws = DistanceIntervalFrame {
+        duration = Utils.parseDuration . Utils.grabChunk 0 2 $ ws,
+        heartRate = fromIntegral . (!! 2) $ ws,
+        restHeartRate = fromIntegral . (!! 3) $ ws,
+        strokesPerMinute = fromIntegral . (!! 4) $ ws
+    }
 
 ## Creating a JSON object
 
