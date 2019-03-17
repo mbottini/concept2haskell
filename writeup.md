@@ -403,6 +403,17 @@ In `ghci`:
 This is my very first workout with this rowing machine, and yes, I did it in
 2017.
 
+I like this method of programming because we can see each transformation
+as it occurs. We grab the bytes from a file, grab the header-sized chunk,
+grab the timestamp-sized chunk, convert to bits, grab the year-sized chunk
+of bits, and then parse it into our year value.
+
+All of my parsing functions work this way, albeit with composition rather
+than the `>>=` operator. I only use the `IO` monad for the operation of
+getting the list of bytes from the file. There are a variety of these
+functions for converting `Word8` lists to various types, and we'll use
+this to build our own product types containing workout data.
+
 
 ## Creating a JSON object
 
