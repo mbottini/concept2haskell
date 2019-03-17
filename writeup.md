@@ -347,7 +347,7 @@ into this problem exactly when Mark started covering it).
 
 Again, from `Utils.hs`:
 
-type Bit = Bool
+    type Bit = Bool
 
     wordToBits :: Word8 -> [Bit]
     wordToBits = wordToBits' 0
