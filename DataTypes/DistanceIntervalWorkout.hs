@@ -45,25 +45,28 @@ getFrames te ds = DistanceIntervalWorkout {
           index = Te.recordSize te
 
 instance ToJSON DistanceIntervalWorkout where
-    toJSON w = Utils.mergeObjects splits (toJSON (header w))
-        where splits = (object ["workout" .= object ["intervals" .= fs],
-                               "stroke_rate" .= Number (Utils.intToScientific .
-                                                        Utils.average . 
-                                                        map Dif.strokesPerMinute .
-                                                        frames $ w),
-                               "distance" .= Number (Utils.intToScientific .
-                                                     (* numIntervals) . 
-                                                     Dih.splitSize .
-                                                     header $ w)])
+    toJSON w = Utils.mergeObjects derivedValues (toJSON (header w))
+        where derivedValues = (object ["workout" .= object ["intervals" .= fs],
+                                       "stroke_rate" .= sr,
+                                       "distance" .= dt])
               numIntervals = Dih.numSplits . header $ w
-              t = Dih.splitSize . header $ w
-              total = numIntervals * t
-              fs = listValue id . 
-                   Utils.addDistanceToIntervals t total .
-                   map (Utils.addAttribute "rest_time" 
-                       (Number $ 
-                           Utils.tenthsToScientific . 
-                           Dih.restTime . 
-                           header $ w)) .
-                   map toJSON . 
-                   frames $ w
+              sr = Number (Utils.intToScientific .
+                           Utils.average . 
+                           map Dif.strokesPerMinute .
+                           frames $ w)
+              dt = Number (Utils.intToScientific .
+                           (* numIntervals) . 
+                           Dih.splitSize .
+                           header $ w)
+              fs = populateFrames (header w) (frames w)
+
+populateFrames :: Dih.DistanceIntervalHeader -> 
+                  [Dif.DistanceIntervalFrame] ->
+                  Value
+populateFrames dih = 
+    listValue id .
+    map (Utils.addAttribute "rest_time" rt) .
+    map (Utils.addAttribute "distance" dt) .
+    map toJSON
+        where rt = Number $ Utils.tenthsToScientific . Dih.restTime $ dih
+              dt = Number $ Utils.intToScientific . Dih.splitSize $ dih
