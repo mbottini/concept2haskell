@@ -590,42 +590,42 @@ Here's an example from our friend the `DistanceIntervalWorkout`. It's ugly,
 and there was probably a better way to do this.
 
     instance ToJSON DistanceIntervalWorkout where
-        toJSON w = Utils.mergeObjects splits (toJSON (header w))
-            where splits = (object ["workout" .= object ["intervals" .= fs],
-                                   "stroke_rate" .= Number (Utils.intToScientific .
-                                                            Utils.average . 
-                                                            map Dif.strokesPerMinute .
-                                                            frames $ w),
-                                   "distance" .= Number (Utils.intToScientific .
-                                                         (* numIntervals) . 
-                                                         Dih.splitSize .
-                                                         header $ w)])
-                  numIntervals = Dih.numSplits . header $ w
-                  t = Dih.splitSize . header $ w
-                  total = numIntervals * t
-                  fs = listValue id . 
-                       Utils.addDistanceToIntervals t total .
-                       map (Utils.addAttribute "rest_time" 
-                           (Number $ 
-                               Utils.tenthsToScientific . 
-                               Dih.restTime . 
-                               header $ w)) .
-                       map toJSON . 
-                       frames $ w
+        toJSON w = Utils.mergeObjects derivedValues (toJSON (header w))
+            where derivedValues = (object ["workout" .= object ["intervals" .= fs],
+                                        "stroke_rate" .= sr,
+                                        "distance" .= dt])
+                numIntervals = Dih.numSplits . header $ w
+                sr = Number (Utils.intToScientific .
+                            Utils.average . 
+                            map Dif.strokesPerMinute .
+                            frames $ w)
+                dt = Number (Utils.intToScientific .
+                            (* numIntervals) . 
+                            Dih.splitSize .
+                            header $ w)
+                fs = populateFrames (header w) (frames w)
 
-The "splits" are actually intervals here - that's the object that contains the
-interval data. The remainder is doing things like the following:
+    populateFrames :: Dih.DistanceIntervalHeader -> 
+                    [Dif.DistanceIntervalFrame] ->
+                    Value
+    populateFrames dih = 
+        listValue id .
+        map (Utils.addAttribute "rest_time" rt) .
+        map (Utils.addAttribute "distance" dt) .
+        map toJSON
+            where rt = Number $ Utils.tenthsToScientific . Dih.restTime $ dih
+                dt = Number $ Utils.intToScientific . Dih.splitSize $ dih
 
-* Adding an attribute `"rest_time"` to each `Frame` object.
-* Adding an attribute `"distance"` to each `Frame` object.
-* Combining the list of `Object`s into a single `Array` value (`listValue id`
-is a crude way of doing this).
+We have the JSON values in the `header`, and we have the ability to map 
+`toJSON` to the list of `frames` and turn them into a single `Array` with
+`listvalue id`. But the rest of the values have to be derived, so
+there are a bunch of nasty computations.
 
-Other JSON implementations are similarly ugly due to this need to access values
-from both objects, do calculations on them, and then add the results to the
-objects themselves. Any individual step isn't too hard, but it piles up really
-quickly and becomes unmanageable. I don't like it, and my guess is that my
-approach was fundamentally flawed.
+Other `toJSON` implementations are similarly ugly due to this need to access
+values from both objects, do calculations on them, and then add the results
+to the objects themselves. Any individual step isn't too hard, but it piles
+up really quickly and becomes unmanageable. I don't like it, and my guess is
+that my approach was fundamentally flawed.
 
 ## Endgame
 
