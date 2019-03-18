@@ -34,9 +34,10 @@ I'm not quite sure how to format this, but as the A Perfect Circle song goes,
 shows. It's ugly as far as a report goes, but I just need to stop staring at
 the screen thinking "*Twenty pages???*"
 
-# Objective 4
+# ErgParse Implementation
 
 > "Describe what has been done."
+- Funlangs Project Grading Rubric
 
 ## How a Rowing Machine works
 
@@ -641,9 +642,7 @@ check to see if a JSON object meets their requirements. I can copy-paste
 the object into their field, and it will print its interpretation of the object
 and whether it's a valid object. And that's that.
 
-# Objective 7
-
-> "Cite your sources."
+# Works Cited
 
 I am deeply indebted to the following people, in no particular order, for
 their following contributions:
@@ -668,21 +667,3 @@ https://stackoverflow.com/a/4597877
 what I did use, he made pretty clear. Link at https://artyom.me/aeson
 
 
-# Objective 1
-
-> "Uses, applies, and extends techniques and ideas that we have covered in
-class."
-
-## Lists and List Processing
-
-The most important aspect of this program is parsing the binary format. Just
-as a text parser consumes a list of tokens, mine uses bytes. This means that
-pretty much all of my `parseDataType` functions are of the type
-
-    parseDataType :: [Word8] -> DataType
-
-I have a variety of functions in the `Utils.hs` file, which my various parser
-functions call to break up these lists and transform them into the data
-structures.
-
-Because the 
