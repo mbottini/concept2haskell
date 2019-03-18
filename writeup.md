@@ -645,6 +645,25 @@ and whether it's a valid object. And that's that.
 
 > "Cite your sources."
 
+I am deeply indebted to the following people, in no particular order, for
+their following contributions:
+
+* Alexander Weinhold at https://gutmet.org, for providing the lion's share of
+the PM5 data format. This project would have been an order of magnitude more
+difficult without him. Link at
+https://gutmet.org/blog/2018/03/04/Concept2-PM5-logbook-data-format.html
+
+* Anu Dudhia, from the University of Oxford, for providing some functions
+regarding the ergometer's conversion of calories to watts. Link at
+http://eodg.atm.ox.ac.uk/user/dudhia/rowing/physics/ergometer.html#section11
+
+* Concept2 for providing a function to convert watts to velocity. This
+was useful when converting calories to meters. Link at
+https://www.concept2.com/indoor-rowers/training/calculators/watts-calculator
+
+* "Chuck," from Stack Overflow, for thoughts on list slicing. Link at
+https://stackoverflow.com/a/4597877
+
 
 # Objective 1
 
