@@ -664,6 +664,9 @@ https://www.concept2.com/indoor-rowers/training/calculators/watts-calculator
 * "Chuck," from Stack Overflow, for thoughts on list slicing. Link at
 https://stackoverflow.com/a/4597877
 
+* Artyom Kazak for his Data.Aeson tutorial. I didn't use much of it, but
+what I did use, he made pretty clear. Link at https://artyom.me/aeson
+
 
 # Objective 1
 
