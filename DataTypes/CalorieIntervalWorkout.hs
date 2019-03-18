@@ -45,13 +45,27 @@ getFrames te ds = CalorieIntervalWorkout {
           index = Te.recordSize te
 
 instance ToJSON CalorieIntervalWorkout where
-    toJSON w = Utils.mergeObjects splits (toJSON (header w))
-        where splits = (object ["workout" .= object ["intervals" .= fs],
-                               "stroke_rate" .= Number (Utils.intToScientific .
-                                                        Utils.average . 
-                                                        map Cif.strokesPerMinute .
-                                                        frames $ w)])
-              intervalCals = Cih.splitSize . header $ w
-              fs = listValue id .
-                   map (Cif.insertDistance intervalCals) .
-                   frames $ w
+    toJSON w = Utils.mergeObjects derivedValues (toJSON (header w))
+        where derivedValues = (object ["workout" .= object ["intervals" .= fs],
+                                       "stroke_rate" .= sr,
+                                       "distance" .= dt])
+              sr = Number (Utils.intToScientific .
+                           Utils.average . 
+                           map Cif.strokesPerMinute .
+                           frames $ w)
+              fs = populateFrames (header w) (frames w)
+              dt = Number (Utils.intToScientific .
+                           sum .
+                           map (Cif.getMetersFromCif 
+                               (Cih.splitSize . header $ w)) .
+                           frames $ w)
+                           
+
+populateFrames :: Cih.CalorieIntervalHeader -> 
+                  [Cif.CalorieIntervalFrame] ->
+                  Value
+populateFrames cih = 
+    listValue id .
+    map (Utils.addAttribute "rest_time" rt) .
+    map (Cif.insertDistance (Cih.splitSize cih))
+        where rt = Number $ Utils.tenthsToScientific . Cih.restTime $ cih

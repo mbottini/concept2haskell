@@ -24,7 +24,7 @@ parseCalorieIntervalFrame ws = CalorieIntervalFrame {
 
 instance ToJSON CalorieIntervalFrame where
     toJSON cif = object [
-        "type" .= String "calorie",
+        "type" .= String "calories",
         "time" .= Number (Utils.tenthsToScientific . duration $ cif),
         "stroke_rate" .= Number (Utils.intToScientific . strokesPerMinute $ cif)
         ]
