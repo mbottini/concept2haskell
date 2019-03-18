@@ -69,12 +69,12 @@ crew is 2,000 meters, which occupies an unhappy medium.
 The rowing machine has a variety of workouts for you to choose from,
 including the following:
 
-* "Fixed Distance" - you row $X$ meters, and the machine counts down from $X$.
-It will automatically divide the workout into **splits**, similar to laps on
-a track. The splits measure how long it took you to row $Y$ meters, and by
-default $Y$ is a fifth of the workout. So, if you row 5,000 meters, the
-rowing machine will by default save how long it took you to row each 1k
-split. We'll get into splits later.
+* "Fixed Distance" - you row $X$ meters, and the machine counts down from $X$
+as you do it. It will automatically divide the workout into **splits**,
+similar to laps on a track. The splits measure how long it took you to row
+$Y$ meters, and by default $Y$ is a fifth of the workout. So, if you row
+5,000 meters, the rowing machine will by default save how long it took you to
+row each 1k split. We'll get into splits later.
 
 * "Fixed Time" - you row $T_1$ minutes and $T_2$ seconds, and the machine
 counts down from $T_1+T_2$. Same as the Fixed Distance workout, the machine
@@ -183,10 +183,10 @@ is important because it gives us an easy way to grab only the bytes of the
 file that correspond to this workout. We don't have to parse the data itself
 to figure out how large the entry is.
 
-Because we're dealing with pretty low-level hardware, the last 32 bytes of the
-file are all `0xFF`. This is a way of saying "Hey, we're at the end of the file,"
-I guess. This just means that we have to lop off the very last entry when we
-parse the data.
+Because we're dealing with pretty low-level hardware, the last 32 bytes of
+the file are all `0xFF`. This is a way of saying "Hey, we're at the end of
+the file," I guess. For the purposes of this program, it just means that we
+have to lop off the very last entry when we parse the data.
 
 ### LogDataStorage.bin
 
@@ -220,7 +220,7 @@ dive in.
 Typically, we deal with IO last in Haskell. The idea is that we define our
 pure functions first, and then we take a deep breath, carve a couple of
 protective runes into our desks, and dabble just enough in side effects to
-get the job done without summoning Zalgo to the Realm of Men.
+get the job done without summoning Zalgo to the Material Plane.
 
 Unfortunately, in this case, I really didn't want to come up with a bunch of
 binary numbers to test my functions. I needed the actual data first. This meant
@@ -233,8 +233,8 @@ https://wiki.haskell.org/Dealing_with_binary_data has a pretty sparse
 description of the `Get` monad, which we need to turn a `ByteString` into a
 list of `Word8`s.
 
-There's probably a better more Haskell-ish way to do it, but I wrote the
-following function. From `ergparse.hs`:
+There's probably a better and more Haskell-ish way to do it, but I wrote the
+following function. From `Utils.hs`:
 
     gBytes :: Get [Word8]
     gBytes = do
