@@ -14,13 +14,13 @@ import qualified Utils
 -- Takes a bytestream and returns a Get containing a list of bytes.
 gBytes :: Get [Word8]
 gBytes = do
-  e <- isEmpty
-  case e of
-    True -> return []
-    False -> do
-      current <- getWord8
-      rest <- gBytes
-      return (current : rest)
+    e <- isEmpty
+    case e of
+        True -> return []
+        False -> do
+            current <- getWord8
+            rest <- gBytes
+            return $ current : rest
 
 -- Opens a binary file and returns an IO containing the bytes in the list.
 getLogDataAccessData :: [Char] -> IO [Word8]
