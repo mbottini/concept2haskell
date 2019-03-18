@@ -61,8 +61,8 @@ as it glides across the water.
 
 Rowing runs the gamut for duration and intensity. It's possible to row a
 marathon, and it's also possible to do high-intensity training by sprinting
-repeatedly for 500 meters. The standard competition distance in crew is 2,000
-meters, which occupies an unhappy medium.
+repeatedly for 100-500 meter intervals. The standard competition distance in
+crew is 2,000 meters, which occupies an unhappy medium.
 
 ## Types of Workout
 
