@@ -40,7 +40,7 @@ instance ToJSON DistanceIntervalHeader where
     toJSON h = object [
         "type" .= String "rower",
         "workout_type" .= String "FixedDistanceInterval",
-        "date" .= String (pack . show . timeStamp $ h),
+        "date" .= String (pack . Utils.formatTimeStamp . timeStamp $ h),
         "rest_distance" .= Number (Utils.intToScientific . totalRestDistance $ h),
         "time" .= Number (Utils.tenthsToScientific . totalTime $ h),
         "rest_time" .= Number (Utils.tenthsToScientific . restTime $ h),

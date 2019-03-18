@@ -36,7 +36,7 @@ instance ToJSON VariableIntervalHeader where
     toJSON h = object [
         "type" .= String "rower",
         "workout_type" .= String "VariableInterval",
-        "date" .= String (pack . show . timeStamp $ h),
+        "date" .= String (pack . Utils.formatTimeStamp . timeStamp $ h),
         "time" .= Number (Utils.tenthsToScientific . totalTime $ h),
         "distance" .= Number (Utils.intToScientific . totalWorkDistance $ h),
         "weight_class" .= String "H"]

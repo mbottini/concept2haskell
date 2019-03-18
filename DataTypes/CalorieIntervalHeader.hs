@@ -40,7 +40,7 @@ instance ToJSON CalorieIntervalHeader where
     toJSON h = object [
         "type" .= String "rower",
         "workout_type" .= String "FixedCalorieInterval",
-        "date" .= String (pack . show . timeStamp $ h),
+        "date" .= String (pack . Utils.formatTimeStamp . timeStamp $ h),
         "time" .= Number (Utils.tenthsToScientific . totalTime $ h),
         "rest_time" .= Number (Utils.tenthsToScientific . restTime $ h),
         "rest_distance" .= Number (Utils.intToScientific . totalRestDistance $ h),

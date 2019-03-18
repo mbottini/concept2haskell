@@ -40,7 +40,7 @@ instance ToJSON FixedTimeHeader where
     toJSON h = object [
         "type" .= String "rower",
         "workout_type" .= String "FixedTimeSplits",
-        "date" .= String (pack . show . timeStamp $ h),
+        "date" .= String (pack . Utils.formatTimeStamp . timeStamp $ h),
         "distance" .= Number (Utils.intToScientific . totalDistance $ h),
         "time" .= Number (Utils.tenthsToScientific . totalDuration $ h),
         "weight_class" .= String "H",
