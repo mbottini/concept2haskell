@@ -162,11 +162,12 @@ convertToJoules secs cals = 7000/80 * (12*cals - secs)
 convertToWatts :: Rational -> Rational -> Rational
 convertToWatts secs joules = joules / secs
 
--- machars.net provides a formula to convert watts to meters per second as
--- follows:
+-- Concept2 provides a formula to convert watts to meters per second as follows:
 --
 -- v = (P / 2.8)^(1/3)
 -- where v is in meters per second, and P is watts.
+-- Link to their calculator: 
+-- https://www.concept2.com/indoor-rowers/training/calculators/watts-calculator
 
 convertToVelocity :: Floating a => Rational -> a
 convertToVelocity watts = ((fromRational watts) / 2.8)**(1/3)
