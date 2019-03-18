@@ -9,6 +9,29 @@ import qualified Data.Vector
 import qualified Data.HashMap.Lazy as HML
 import qualified Data.Text as DT
 import Data.Time.LocalTime
+import qualified Data.ByteString.Lazy as B
+import Data.Binary.Get
+
+-- Takes a bytestream and returns a Get containing a list of bytes.
+gBytes :: Get [Word8]
+gBytes = do
+    e <- isEmpty
+    case e of
+        True -> return []
+        False -> do
+            current <- getWord8
+            rest <- gBytes
+            return $ current : rest
+
+getLogDataAccessData :: [Char] -> IO [Word8]
+getLogDataAccessData filename = do
+    bStream <- B.readFile filename
+    return $ runGet gBytes bStream
+
+getLogDataAccessBinaries :: [Char] -> IO [[Word8]]
+getLogDataAccessBinaries filename = do
+    data_lst <- getLogDataAccessData filename
+    return $ Utils.splitAll 32 data_lst
 
 parseLittleEndian :: [Word8] -> Int
 parseLittleEndian [] = 0
