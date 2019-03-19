@@ -43,7 +43,9 @@ instance ToJSON DistanceIntervalHeader where
         "date" .= String (pack . Utils.formatTimeStamp . timeStamp $ h),
         "rest_distance" .= Number (Utils.intToScientific . totalRestDistance $ h),
         "time" .= Number (Utils.tenthsToScientific . totalTime $ h),
-        "rest_time" .= Number (Utils.tenthsToScientific . restTime $ h),
+        "rest_time" .= Number (Utils.tenthsToScientific . 
+                               Utils.multiplyInterval (numSplits h) .
+                               restTime $ h),
         "weight_class" .= String "H"]
 
 
