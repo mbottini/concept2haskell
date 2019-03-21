@@ -810,7 +810,7 @@ and there was probably a better way to do this.
 
     -- Merge object made of "stroke_rate", "distance", and compound "workout"
     -- object to the toJSON transformation of the header. Note that the frames
-    -- themselves must also attributes added to them.
+    -- themselves must also have attributes added to them.
     instance ToJSON DistanceIntervalWorkout where
         toJSON w = Utils.mergeObjects derivedValues (toJSON (header w))
             where derivedValues = (object ["workout" .= object ["intervals" .= fs],
