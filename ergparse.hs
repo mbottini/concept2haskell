@@ -19,11 +19,7 @@ getWorkouts tes ds = map (\te -> W.getFrames te ds) tes
 main = do
     entries <- getTableEntries "LogDataAccessTbl.bin"
     workoutData <- Utils.getLogDataAccessData "LogDataStorage.bin"
-    mapM W.toLocalTime (getWorkouts entries workoutData) >>=
-        Utils.inIO Utils.listJSONToObj >>=
-        Utils.inIO encodePretty >>=
-        Utils.inIO BC.unpack >>=
-        putStrLn
+    mapM_ (putStrLn . show) (getWorkouts entries workoutData)
     
     
     
