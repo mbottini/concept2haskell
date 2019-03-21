@@ -652,7 +652,28 @@ Since we declared all of these types to derive `Show`, we can start printing
 them. An early iteration of my program, before I took the next step, looked
 like this:
 
+    getTableEntries :: [Char] -> IO [Te.TableEntry]
+    getTableEntries filename = Utils.getLogDataAccessBinaries filename >>=
+                            Utils.inIO Utils.allButLast >>=
+                            Utils.inIO (map Te.parseTableEntry) 
 
+    getWorkouts :: [Te.TableEntry] -> [Word8] -> [W.Workout]
+    getWorkouts tes ds = map (\te -> W.getFrames te ds) tes
+
+    main = do
+        entries <- getTableEntries "LogDataAccessTbl.bin"
+        workoutData <- Utils.getLogDataAccessData "LogDataStorage.bin"
+        mapM_ (putStrLn . show) (getWorkouts entries workoutData)
+
+So we parse the `TableEntry` values from `LogDataAccessTbl.bin`, making
+sure to discard the last one. Then we get the `WorkoutData`, a big list
+of bytes, from `LogDataStorage.bin`. We can now get the entire
+list of workouts with `getWorkouts`, which calls the `getFrames` function
+I defined above.
+
+Printing this is, um, ugly, but it's definitely a start.
+
+![Raw Data before transformation](images/nojson.png)
 
 ## Creating a JSON object
 
@@ -684,23 +705,99 @@ others are not so simple. For example, each split must contain the distance
 and time that were rowed. However, the split size is actually contained in
 the header!
 
-So, it's not enough just to say "Well, the frame has fields $x$, $y$, and
-$z$, so just create an object associating these fields to strings and call it
-a day." We have to merge objects, or the JSON object will be incomplete.
+Here's an example of this from `DistanceIntervalFrame`:
 
-So, after parsing, we have to do a little bit of massaging to take data
-from the header and put it into the frames. In others, we have to take
-data from the frames and put it into the object. For example, the
-VariableDistance workout does not have an average stroke rate for the workout.
-Instead, we have to calculate it from the stroke rates of each interval.
+    instance ToJSON DistanceIntervalFrame where
+        toJSON dif = object [
+            "type" .= String "distance",
+            "time" .= (Utils.tenthsToScientific . duration $ dif),
+            "stroke_rate" .= (Utils.intToScientific . strokesPerMinute $ dif)]
 
-Thus, we build as much of an object as we can at the `Frame` and `Header`
-level, and then at the `Workout` level, where we have access to both `Object`s,
-we merge them and add more fields with attributes from both `Object`s.
+We have the time here, but we don't have the distance. So, it's not enough
+just to say "Well, the frame has fields $x$, $y$, and $z$, so just create an
+object associating these fields to strings and call it a day." We have to
+merge objects, or the JSON object will be incomplete.
+
+In some cases, we have to take data from the header and put it into the frame
+serialization. In others, we have to take data from the frames and put it
+into the object. For example, the VariableDistance workout does not have an
+average stroke rate for the workout. Instead, we have to calculate it from
+the stroke rates of each interval.
+
+My general approach is to build as much of an object as we can at the `Frame`
+and `Header` level, and then at the `Workout` level, where we have access to
+both `Object`s, we merge them and add more fields with attributes from both
+`Object`s.
+
+I defined the following utility functions in `Utils` to do this.
+
+    mergeObjects :: Value -> Value -> Value
+    mergeObjects (Object x) (Object y) = Object $ HML.union x y
+    mergeObjects _ _ = error "Can't merge non-object values!"
+
+    addAttribute :: String -> Value -> Value -> Value
+    addAttribute s val (Object x) = Object $ HML.insert (DT.pack s) val x
+    addAttribute _ _ _ = error "Can only add attribute to object!"
+
+Note that since we're dealing with `Value`s, we lose a lot of the type-checking
+that made other Haskell programming so easy. We're now in the realm of Python
+and runtime errors. Joy.
+
+To take a couple of small examples, we can do the following:
+
+    -- Utils imports Data.Aeson, but we need Data.Aeson.Encode.Pretty and
+    -- Data.ByteString.Lazy.Char8 because encode returns a ByteString, not a
+    -- String. We also need the OverloadedStrings language extension.
+    Prelude> :l Utils
+    [1 of 1] Compiling Utils            ( Utils.hs, interpreted )
+    Ok, one module loaded.
+    *Utils> import Data.Aeson.Encode.Pretty as P
+    *Utils P> import qualified Data.ByteString.Lazy.Char8 as BC
+    *Utils P BC> :set -XOverloadedStrings
+    *Utils P BC> let o = object ["foo" .= "bar", "baz" .= 5]
+    *Utils P BC> let p = object ["quux" .= True, "spam" .= 7]
+    *Utils P BC> putStrLn . BC.unpack . encodePretty $ mergeObjects o p
+    {
+        "foo": "bar",
+        "baz": 5,
+        "spam": 7,
+        "quux": true
+    }
+
+Similarly, for `addAttribute`:
+
+    *Utils P BC> :{
+    *Utils P BC| putStrLn . BC.unpack . encodePretty $
+    *Utils P BC|     addAttribute "eggs" (Number 5) p
+    *Utils P BC| :}
+    {
+        "spam": 7,
+        "eggs": 5,
+        "quux": true
+    }
+
+Because functions are curried, we can compose `addAttribute` functions
+to add multiple key-value pairs in a (hopefully) readable manner.
+
+    *Utils P BC> :{
+    *Utils P BC| putStrLn . BC.unpack . encodePretty $
+    *Utils P BC|     addAttribute "eggs" (Number 5) .
+    *Utils P BC|     addAttribute "jam" "strawberry" $ p
+    *Utils P BC| :}
+    {
+    "jam": "strawberry",
+    "spam": 7,
+    "eggs": 5,
+    "quux": true
+    }
+    
 
 Here's an example from our friend the `DistanceIntervalWorkout`. It's ugly,
 and there was probably a better way to do this.
 
+    -- Merge object made of "stroke_rate", "distance", and compound "workout"
+    -- object to the toJSON transformation of the header. Note that the frames
+    -- themselves must also attributes added to them.
     instance ToJSON DistanceIntervalWorkout where
         toJSON w = Utils.mergeObjects derivedValues (toJSON (header w))
             where derivedValues = (object ["workout" .= object ["intervals" .= fs],
@@ -717,6 +814,7 @@ and there was probably a better way to do this.
                             header $ w)
                 fs = populateFrames (header w) (frames w)
 
+    -- Add "rest_time" and "distance" key-value pairs to each frame.
     populateFrames :: Dih.DistanceIntervalHeader -> 
                     [Dif.DistanceIntervalFrame] ->
                     Value
@@ -728,10 +826,12 @@ and there was probably a better way to do this.
             where rt = Number $ Utils.tenthsToScientific . Dih.restTime $ dih
                 dt = Number $ Utils.intToScientific . Dih.splitSize $ dih
 
-We have the JSON values in the `header`, and we have the ability to map 
+We have the JSON values in the `header`, and we have the ability to map
 `toJSON` to the list of `frames` and turn them into a single `Array` with
-`listvalue id`. But the rest of the values have to be derived, so
-there are a bunch of nasty computations.
+`listvalue id`. But the rest of the values have to be derived, so there are a
+bunch of nasty computations that are then merged into the object. I dearly
+missed Scala's ability to have some state and do `map += (foo -> bar)`, as it
+was a lot more readable than the above mess.
 
 Other `toJSON` implementations are similarly ugly due to this need to access
 values from both objects, do calculations on them, and then add the results
@@ -751,14 +851,96 @@ resorted to using their online validator tool at
 https://log.concept2.com/developers/validator. This is a tool from Concept2 to
 check to see if a JSON object meets their requirements. I can copy-paste
 the object into their field, and it will print its interpretation of the object
-and whether it's a valid object. And that's that.
+and whether it's a valid object. Here's an example:
+
+![Screenshot from Validator Page](images/validator.png)
+\
+
+This has a couple of nice aspects to it.
+
+* It does some minimal validation to ensure that all of the required attributes
+are in the object.
+
+* It prints a readable format of what it interprets my workout to entail. This
+means that if I, for example, provided a crazy rest time, didn't track
+interval distances properly, or something similar, it would show non-sensical
+data in the bottom left corner. When testing the final result, I would put in
+a bunch of different types of workouts and ensure that all of them got sane
+results from this validator.
+
+# Testing
+
+Ummm... Well, this is part of the rubric, isn't it? Unfortunately, I'm going
+to have to take the L here, as I mostly coded by the seat of my pants. I wasn't
+even sure what the format of most of the data was in, so the real way to see
+if the code worked was if it spat out workouts that looked vaguely like the
+ones that I did.
+
+The `Utils` were really the only code that lent itself to unit tests. I made
+a couple of functions to do this, but they were pretty half-hearted. The most
+difficult and test-heavy part of my program was the `parseDateStamp`
+function, which involved a large number of my other list processing
+functions. I did more flipping and reversing than Missy Elliot due to
+endianness issues, and I had to observe the data at every step of the way.
+
+Besides that, it mostly came down to copy-pasting the finished JSON data into
+the Validator and looking at what it returned. I had a whole bunch of very
+minor problems with things like the following:
+
+* Rest time wasn't added properly. 
+
+* Times that should have been in tenths of a second were in seconds, and vice
+versa.
+
+* Attributes were missing from various steps of the object, and I had to put
+them in.
+
+Because Concept2 provided this for me, I didn't do very much tooling for
+myself.
 
 # Stuff I learned
 
-Timezones are mean, nasty, ugly things. The Concept2 API prefers a UTC time
-with a timezone from the `tz` database, and apparently this is incredibly
-difficult to do on Linux. It seems to be happy with my `"PST"` `TimeZone` that
-I got from using `Data.Time.LocalTime`,
+Timezones are mean, nasty, ugly things. The Concept2 API wanted me to merge
+its object with a timezone from the `tz` database, and apparently this is
+incredibly difficult to do on Linux. It seems to be happy with my `"PST"`
+`TimeZone` that I got from using `Data.Time.LocalTime`, and I tested it with
+a couple of other random timezones from the Indian Ocean and whatnot. This
+isn't quite accurate, but I couldn't figure out a non-awful way to get
+`"America/Los_Angeles"` instead of `PST`.
+
+Point-free programming was an absolute joy. Being able to chain functions
+together with composition was outright beautiful in certain places, and
+was at least legible in others. I may have gone overboard in some areas.
+
+The hard-and-fast namespace/module requirement was actually really beneficial
+for breaking up the program and forcing me to think about where I should put
+some of the utility functions. They didn't all end up in `Utils`; some of
+them ended up with their corresponding types. Also, breaking up the program
+into multiple files encouraged me to be even more aggressive about keeping
+complexity inside only one file at a time and making a friendly interface for
+the next higher level.
+
+There was no reason for me to name my parsing functions
+`parseDistanceIntervalHeader` and whatnot. I could've named them `parse`, and
+what's more is that I learned this lesson halfway through; all of my
+`getFrames` functions are named the same thing and kept distinct from one
+another with the above namespace requirement. Not a big deal, but a little
+extra typing that didn't need to happen.
+
+Up until I hit the JSON segment, which involves a lot of converting various
+types to `String` and doesn't allow this, I had the luxury of being able to
+say, "If it compiles, it's probably very, very close to correct." The type
+system is absolutely amazing at making sure that you provide the correct
+functions in the correct order to transform the data.
+
+The IO monad is actually a lot less scary than it was when I started the
+term. It's not quite a warm fuzzy thing yet, but it's getting there. I'd
+advise FP newbies to stop reading the "a monad is just a monoid in the
+category of endofunctors" garbage on the Internet and **use** it.
+
+Everyone on the \#haskell IRC knows Mark Jones and thinks he's the cat's
+pajamas.
+
 
 # Works Cited
 
