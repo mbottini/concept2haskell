@@ -43,7 +43,6 @@ instance ToJSON Workout where
     toJSON (VariableIntervalWorkout w) = toJSON w
     toJSON (CalorieIntervalWorkout w) = toJSON w
     toJSON (FixedCalorieWorkout w) = toJSON w
-    toJSON _ = error "Not implemented yet!"
 
 toLocalTime :: Workout -> IO Value
 toLocalTime w = return w >>= Utils.inIO toJSON >>= Utils.addTimeZoneLocal
