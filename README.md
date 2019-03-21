@@ -14,3 +14,15 @@ On Debian, you can get them with
 On Arch:
 
     sudo pacman -S haskell-aeson haskell-aeson-pretty
+
+# Usage
+
+Compile with `make`.
+
+To run, copy the following files from your Concept2 USB stick to the
+working directory:
+
+* LogDataAccessTbl.bin
+* LogDataStorage.bin
+
+Run with `./ergparse`.
