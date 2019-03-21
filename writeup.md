@@ -573,7 +573,7 @@ type as an example.
     }
 
 In short - each type has its definition in record syntax, and a parsing
-function that takes a `[Word8]` and applies the various `Utils` functions
+function that takes a `[Word8]` and composes the various `Utils` functions
 to parse `chunk`s of the list.
 
 This is ugly, but it's not *that* hard to figure out. Doing this for every one
@@ -893,8 +893,7 @@ The `Utils` were really the only code that lent itself to unit tests. I made
 a couple of functions to do this, but they were pretty half-hearted. The most
 difficult and test-heavy part of my program was the `parseDateStamp`
 function, which involved a large number of my other list processing
-functions. I did more flipping and reversing than Missy Elliot due to
-endianness issues, and I had to observe the data at every step of the way.
+functions and a whole bunch of trial and error to figure out the endianness.
 
 Besides that, it mostly came down to copy-pasting the finished JSON data into
 the Validator and looking at what it returned. I had a whole bunch of very
