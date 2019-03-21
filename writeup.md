@@ -2,6 +2,8 @@
 
 ## Mike Bottini
 
+Github repository: https://github.com/mbottini/concept2haskell
+
 # Introduction
 
 Concept2 is a company that manufactures *ergometers* - literally devices
