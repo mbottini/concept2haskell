@@ -160,9 +160,7 @@ reverse engineering.
 ### LogDataAccessTbl.bin
 
 Each entry in `LogDataAccessTbl.bin` is 32 bytes and corresponds to a
-workout. There are only three important members of the entry:
-the workout type, the record offset, and the size of the record. The format is
-as follows, directly quoted from Alexander Weinhold:
+workout. The format is as follows, directly quoted from Alexander Weinhold:
 
 | Byte  | Meaning                             |
 |------:|-------------------------------------|
@@ -178,7 +176,7 @@ as follows, directly quoted from Alexander Weinhold:
 | 16-17 | Record offset in LogDataStorage.bin |
 | 18-23 | N/A                                 |
 | 24-25 | Size of record in bytes             |
-| 26-27 | Index                               |
+| 26-27 | Index of the list of workouts       |
 | 28-31 | N/A                                 |
 
 (* unimportant, because either redundant in actual record or unreliable)
