@@ -1,7 +1,5 @@
 import qualified Data.ByteString.Lazy.Char8 as BC
 import Data.Word
-import Data.Time.Clock
-import Data.Aeson
 import Data.Aeson.Encode.Pretty
 
 import qualified DataTypes.TableEntry as Te
