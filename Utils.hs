@@ -229,21 +229,11 @@ formatTimeStamp = formatTime defaultTimeLocale "%F %T"
 
 -- 2019-02-25 13:12:00 UTC
 
-transformUTCStamp :: TimeZone -> Value -> Value
-transformUTCStamp tz obj@(Object x) = mergeObjects obj dateObj
-    where dateObj = object ["date" .= String stamp, "timezone" .= (show tz)]
-          stamp = case (HML.lookup "date" x) of
-              (Just (String s)) -> 
-                  DT.pack .
-                  formatTimeStamp .
-                  localTimeToUTC tz .
-                  parseTimeOrError True defaultTimeLocale "%F %T" .
-                  DT.unpack $ s
-              Nothing -> error "Object does not contain timestamp!"
-transformUTCStamp tz _ = error "Non-object value passed to function!"
+addTimeZone :: TimeZone -> Value -> Value
+addTimeZone tz = addAttribute "timezone" $ String (DT.pack . show $ tz)
 
-transformUTCStampLocal :: Value -> IO Value
-transformUTCStampLocal v = do
+addTimeZoneLocal :: Value -> IO Value
+addTimeZoneLocal v = do
     tz <- getCurrentTimeZone
-    return (transformUTCStamp tz v)
+    return (addTimeZone tz v)
     

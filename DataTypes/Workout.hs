@@ -46,4 +46,4 @@ instance ToJSON Workout where
     toJSON _ = error "Not implemented yet!"
 
 toLocalTime :: Workout -> IO Value
-toLocalTime w = return w >>= Utils.inIO toJSON >>= Utils.transformUTCStampLocal
+toLocalTime w = return w >>= Utils.inIO toJSON >>= Utils.addTimeZoneLocal
