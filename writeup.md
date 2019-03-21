@@ -667,8 +667,8 @@ like this:
 
     getTableEntries :: [Char] -> IO [Te.TableEntry]
     getTableEntries filename = Utils.getLogDataAccessBinaries filename >>=
-                            Utils.inIO Utils.allButLast >>=
-                            Utils.inIO (map Te.parseTableEntry) 
+                               Utils.inIO Utils.allButLast >>=
+                               Utils.inIO (map Te.parseTableEntry) 
 
     getWorkouts :: [Te.TableEntry] -> [Word8] -> [W.Workout]
     getWorkouts tes ds = map (\te -> W.getFrames te ds) tes
@@ -743,7 +743,9 @@ and `Header` level, and then at the `Workout` level, where we have access to
 both `Object`s, we merge them and add more fields with attributes from both
 `Object`s.
 
-I defined the following utility functions in `Utils` to do this.
+I defined the following utility functions in `Utils` to do this. Internally,
+`Object`s are `HashMap`s, so we had to include the `Data.HashMap.Lazy`
+library.
 
     mergeObjects :: Value -> Value -> Value
     mergeObjects (Object x) (Object y) = Object $ HML.union x y
@@ -754,14 +756,16 @@ I defined the following utility functions in `Utils` to do this.
     addAttribute _ _ _ = error "Can only add attribute to object!"
 
 Note that since we're dealing with `Value`s, we lose a lot of the type-checking
-that made other Haskell programming so easy. We're now in the realm of Python
-and runtime errors. Joy.
+that made other Haskell programming so easy. We're have left the realm of the
+compile-time error and have entered unexplored and treacherous territory.
 
-To take a couple of small examples, we can do the following:
+To take a couple of small examples, we can do the following. With
+`mergeObjects`, we can merge two `Object`s.
 
-    -- Utils imports Data.Aeson, but we need Data.Aeson.Encode.Pretty and
-    -- Data.ByteString.Lazy.Char8 because encode returns a ByteString, not a
-    -- String. We also need the OverloadedStrings language extension.
+    -- Utils imports Data.Aeson, but we need Data.Aeson.Encode.Pretty for
+    -- encodePretty and Data.ByteString.Lazy.Char8 because encodePretty returns
+    -- a ByteString, not a String. We also need the OverloadedStrings language
+    -- extension.
     Prelude> :l Utils
     [1 of 1] Compiling Utils            ( Utils.hs, interpreted )
     Ok, one module loaded.
@@ -778,7 +782,8 @@ To take a couple of small examples, we can do the following:
         "quux": true
     }
 
-Similarly, for `addAttribute`:
+Similarly, for `addAttribute`, we can take an `Object` and add a single
+key-value pair.
 
     *Utils P BC> :{
     *Utils P BC| putStrLn . BC.unpack . encodePretty $
@@ -815,30 +820,30 @@ and there was probably a better way to do this.
     instance ToJSON DistanceIntervalWorkout where
         toJSON w = Utils.mergeObjects derivedValues (toJSON (header w))
             where derivedValues = (object ["workout" .= object ["intervals" .= fs],
-                                        "stroke_rate" .= sr,
-                                        "distance" .= dt])
-                numIntervals = Dih.numSplits . header $ w
-                sr = Number (Utils.intToScientific .
-                            Utils.average . 
-                            map Dif.strokesPerMinute .
-                            frames $ w)
-                dt = Number (Utils.intToScientific .
-                            (* numIntervals) . 
-                            Dih.splitSize .
-                            header $ w)
-                fs = populateFrames (header w) (frames w)
+                                           "stroke_rate" .= sr,
+                                           "distance" .= dt])
+                  numIntervals = Dih.numSplits . header $ w
+                  sr = Number (Utils.intToScientific .
+                               Utils.average . 
+                               map Dif.strokesPerMinute .
+                               frames $ w)
+                  dt = Number (Utils.intToScientific .
+                               (* numIntervals) . 
+                               Dih.splitSize .
+                               header $ w)
+                  fs = populateFrames (header w) (frames w)
 
     -- Add "rest_time" and "distance" key-value pairs to each frame.
     populateFrames :: Dih.DistanceIntervalHeader -> 
-                    [Dif.DistanceIntervalFrame] ->
-                    Value
+                      [Dif.DistanceIntervalFrame] ->
+                      Value
     populateFrames dih = 
         listValue id .
         map (Utils.addAttribute "rest_time" rt) .
         map (Utils.addAttribute "distance" dt) .
         map toJSON
             where rt = Number $ Utils.tenthsToScientific . Dih.restTime $ dih
-                dt = Number $ Utils.intToScientific . Dih.splitSize $ dih
+                  dt = Number $ Utils.intToScientific . Dih.splitSize $ dih
 
 We have the JSON values in the `header`, and we have the ability to map
 `toJSON` to the list of `frames` and turn them into a single `Array` with
@@ -903,10 +908,11 @@ minor problems with things like the following:
 * Rest time wasn't added properly. 
 
 * Times that should have been in tenths of a second were in seconds, and vice
-versa.
+versa. I saw this from the big bold letters that said I'd rested for 20 minutes
+instead of 2.
 
-* Attributes were missing from various steps of the object, and I had to put
-them in.
+* Attributes were missing from various parts of the object, and I had to put
+them in. The validator let me know when this occurred.
 
 Because Concept2 provided this for me, I didn't do very much tooling for
 myself.
@@ -961,8 +967,7 @@ term. It's not quite a warm fuzzy thing yet, but it's getting there. I'd
 advise FP newbies to stop reading the "a monad is just a monoid in the
 category of endofunctors" garbage on the Internet and **use** it.
 
-Everyone on the \#haskell IRC knows Mark Jones and thinks he's the cat's
-pajamas.
+Everyone on the \#haskell IRC knows Mark Jones and thinks he's great.
 
 
 # Works Cited
@@ -989,4 +994,68 @@ https://stackoverflow.com/a/4597877
 * Artyom Kazak for his Data.Aeson tutorial. I didn't use much of it, but
 what I did use, he made pretty clear. Link at https://artyom.me/aeson
 
+# Appendix: A Sample Run
 
+I forgot to put this into my report and don't want to waste 20 pages of paper,
+so I'm putting it in at the end.
+
+With a modified `main` program that only prints one of the workouts, I have
+the following:
+
+    main = do
+        entries <- getTableEntries "LogDataAccessTbl.bin"
+        workoutData <- Utils.getLogDataAccessData "LogDataStorage.bin"
+        mapM W.toLocalTime (getWorkouts entries workoutData) >>=
+            Utils.inIO (pure . head) >>= -- Only the head!
+            Utils.inIO Utils.listJSONToObj >>=
+            Utils.inIO encodePretty >>=
+            Utils.inIO BC.unpack >>=
+            putStrLn
+
+Running it gets me
+
+    mike@homebox:~/Codebases/concept2haskell$ ./ergparse 
+    [
+        {
+            "workout": {
+                "splits": [
+                    {
+                        "time": 2676.0,
+                        "distance": 1000,
+                        "stroke_rate": 20
+                    },
+                    {
+                        "time": 2682.0,
+                        "distance": 1000,
+                        "stroke_rate": 20
+                    },
+                    {
+                        "time": 2672.0,
+                        "distance": 1000,
+                        "stroke_rate": 20
+                    },
+                    {
+                        "time": 2679.0,
+                        "distance": 1000,
+                        "stroke_rate": 19
+                    },
+                    {
+                        "time": 2678.0,
+                        "distance": 1000,
+                        "stroke_rate": 20
+                    }
+                ]
+            },
+            "time": 13386.0,
+            "distance": 5000,
+            "weight_class": "H",
+            "date": "2017-02-21 16:20:00",
+            "type": "rower",
+            "workout_type": "FixedDistanceSplits",
+            "timezone": "PDT",
+            "stroke_rate": 19
+        }
+    ]
+
+Obviously, without the `pure . head` function, the program outputs
+several dozen workouts.
