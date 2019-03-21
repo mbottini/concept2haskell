@@ -27,13 +27,6 @@ silly. Lastly, the data itself is opaque; it's a compact binary format.
 **I want to create a program that will duplicate some of the functionality of
 the proprietary Concept2 Windows Utility.**
 
-## Aside
-
-I'm not quite sure how to format this, but as the A Perfect Circle song goes,
-"Just begin." So, I'm going to format this exactly the way that the rubric
-shows. It's ugly as far as a report goes, but I just need to stop staring at
-the screen thinking "*Twenty pages???*"
-
 # ErgParse Implementation
 
 > "Describe what has been done."
@@ -168,25 +161,46 @@ reverse engineering.
 Each entry in `LogDataAccessTbl.bin` is 32 bytes and corresponds to a
 workout. There are only three important members of the entry:
 the workout type, the record offset, and the size of the record. The format is
-as follows:
+as follows, directly quoted from Alexander Weinhold:
 
-#### TODO: Add cute picture of LogDataAccessTbl format
+| Byte  | Meaning                             |
+|------:|-------------------------------------|
+| 0     | Magic 0xF0                          |
+| 1     | Workout type                        |
+| 2-3   | Interval rest time*                 |
+| 4-5   | Workout name*                       |
+| 6-7   | N/A                                 |
+| 8-9   | Timestamp*                          |
+| 10-11 | N/A                                 |
+| 12-13 | No. of Splits*                      |
+| 14-15 | Duration/Distance*                  |
+| 16-17 | Record offset in LogDataStorage.bin |
+| 18-23 | N/A                                 |
+| 24-25 | Size of record in bytes             |
+| 26-27 | Index                               |
+| 28-31 | N/A                                 |
 
-The record offset corresponds to the workout's actual location in
-`LogDataStorage.bin`, An offset of `0x100` would mean that the
+(* unimportant, because either redundant in actual record or unreliable)
+
+(Back to my analysis)
+
+Note that there are only three genuinely important aspects to each entry:
+
+* The workout type, which determines how big the header and frames will be.
+The format of those is shown below.
+
+* The record offset, which determines how many elements of the `LogDataStorage`
+list I have to `drop`. An offset of `0x100` would mean that the
 workout starts at the `0x100`th byte of `LogDataStorage.bin`.
 
-The workout type is important because inside `LogDataStorage.bin`, different
-types of workouts are in different formats. For example, Fixed Distance workouts
-must be parsed differently than Variable Interval workouts. The record size
-is important because it gives us an easy way to grab only the bytes of the
-file that correspond to this workout. We don't have to parse the data itself
-to figure out how large the entry is.
+* The size of the record, which determines how many of the rest that I have to
+`take`.
 
 Because we're dealing with pretty low-level hardware, the last 32 bytes of
 the file are all `0xFF`. This is a way of saying "Hey, we're at the end of
 the file," I guess. For the purposes of this program, it just means that we
-have to lop off the very last entry when we parse the data.
+have to lop off the very last entry when we parse the data. I wrote an
+`allButLast` function to do this for me.
 
 ### LogDataStorage.bin
 
@@ -195,11 +209,71 @@ of different sizes. For example, I could have a Variable Interval workout
 with 10 intervals, and I could also have a Fixed Distance workout where I
 set the splits to be half of the distance I was rowing.
 
-Each entry contains a **header**. "Split" workouts - Just Row, Fixed Distance,
-Fixed Time, and Fixed Calorie - have a header size of 50 bytes.
-Interval workouts have a header size of 52 bytes. The header formats are as follows:
+Each entry contains a **header**. "Split" workouts - Just Row, Fixed
+Distance, Fixed Time, and Fixed Calorie - have a header size of 50 bytes.
+Interval workouts have a header size of 52 bytes. All tables are quoted
+almost directly from Alexander Weinhold but with added types from me and with
+a couple of minor corrections.
 
-#### TODO: Add cute diagram of header
+| Byte  | Meaning            | Type               |
+|------:|--------------------|--------------------|
+| 0     | Magic 0x95         | (N/A)              |
+| 1     | Type of workout    | Enum               |
+| 2-3   | N/A                |                    |
+| 4-7   | Serial number      | Int                |
+| 8-11  | Timestamp          | Special: See below |
+| 12-13 | User ID            | Int                |
+| 14-17 | N/A                |                    |
+| 18    | Record ID          | Int                |
+| 19-21 | Magic 0x000000     | (N/A)              |
+| 22-23 | Total Duration     | Int                |
+| 24-27 | Total Distance     | Int                |
+| 28    | Strokes per Minute | Int                |
+| 29    | Split Info         | (???) (Not sure)   |
+| 30-31 | Split Size         | Depends on type    |
+| 32-49 | N/A                |                    |
+
+The timestamp is uniquely compact. I'm not sure why, they had some extra
+space reserved from Bytes 32-49. It's of the following format:
+
+| Bits  | Meaning          |
+|------:|------------------|
+| 0-6   | year after 2000  |
+| 7-11  | day              |
+| 12-15 | month            |
+| 16-23 | hour             |
+| 24-31 | minute           |
+
+The only genuinely confusing aspect of this is the "Split Info" value. I
+couldn't figure out what this was. It didn't seem to be relevant, but it's
+here.
+
+### Header (Fixed Intervals)
+
+| Byte  | Meaning             | Type               |
+|------:|---------------------|--------------------|
+| 0-18  | As above            |                    |
+| 19    | Number of splits    | Int                |
+| 20-21 | Split size          | Depends on type    |
+| 22-23 | Interval rest time  | Seconds            |
+| 24-27 | Total Work Duration | Tenths of a second |
+| 28-29 | Total Rest Distance | Int                |
+| 30-51 | N/A                 |                    |
+
+### Header (Variable Intervals)
+
+| Byte  | Meaning             | Type               |
+|------:|---------------------|--------------------|
+| 0-18  | As above            |                    |
+| 19    | Number of splits    | Int                |
+| 20-23 | Total Work Duration | Tenths of a second |
+| 24-27 | Total Work Distance | Int                |
+| 30-51 | N/A                 |                    |
+
+Note the wonderful inconsistency between seconds and tenths of a second. This
+wasn't described in Alexander Weinhold's specification, but it wasn't too
+hard to do basic sanity checks and figure out "Hey, I rested for 2 minutes,
+not 20."
 
 After the header comes $n$ **frames**, which contain information about the $n$
 splits or intervals in the workout. "Split" workouts and "Fixed Interval"
@@ -208,7 +282,38 @@ frame size of 48 bytes.
 
 The frame formats are as follows:
 
-#### TODO: Add cute diagrams of frames
+### Split Frame (Non-Interval Types)
+
+| Byte  | Meaning                 | Type            |
+|------:|-------------------------|-----------------|
+| 0-1   | Split Duration/Distance | Depends on Type |
+| 2     | Heart Rate              | Int             |
+| 3     | Strokes per Minute      | Int             |
+| 4-31  | N/A                     |                 |
+
+### Interval Frame (Timed Interval, Distance Interval)
+
+| Byte  | Meaning                 | Type            |
+|------:|-------------------------|-----------------|
+| 0-1   | Split Duration/Distance | Depends on Type |
+| 2     | Heart Rate              | Int             |
+| 3     | Rest Heart Rate         | Int             |
+| 4     | Strokes Per Minute      | Int             |
+| 5-31  | N/A                     |                 |
+
+### Variable Interval Frame
+
+| Byte  | Meaning                 | Type               |
+|------:|-------------------------|--------------------|
+| 0     | Split Type              | Enum (always 0??)  |
+| 1     | Strokes Per Minute      | Int                |
+| 2-5   | Work Interval Time      | Tenths of a second |
+| 6-9   | Work Interval Distance  | Int                |
+| 10    | Heart Rate              | Int                |
+| 11    | Rest Heart Rate         | Int                |
+| 12-13 | Interval Rest Time      | Seconds            |
+| 14-15 | Interval Rest Distance  | Int                |
+| 16-47 | N/A                     |                    |
 
 ---
 
@@ -543,6 +648,12 @@ the `chunk`, and then `splitAll` the remainder of the `chunk` into
 `frameSize`-sized` "subchunks" and get the `frames` from mapping our parse
 function over each of those subchunks.
 
+Since we declared all of these types to derive `Show`, we can start printing
+them. An early iteration of my program, before I took the next step, looked
+like this:
+
+
+
 ## Creating a JSON object
 
 So what's the actual point of this mess? Well, the Concept2 Logbook API
@@ -641,6 +752,13 @@ https://log.concept2.com/developers/validator. This is a tool from Concept2 to
 check to see if a JSON object meets their requirements. I can copy-paste
 the object into their field, and it will print its interpretation of the object
 and whether it's a valid object. And that's that.
+
+# Stuff I learned
+
+Timezones are mean, nasty, ugly things. The Concept2 API prefers a UTC time
+with a timezone from the `tz` database, and apparently this is incredibly
+difficult to do on Linux. It seems to be happy with my `"PST"` `TimeZone` that
+I got from using `Data.Time.LocalTime`,
 
 # Works Cited
 
