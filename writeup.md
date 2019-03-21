@@ -687,6 +687,7 @@ I defined above.
 Printing this is, um, ugly, but it's definitely a start.
 
 ![Raw Data before transformation](images/nojson.png)
+\
 
 ## Creating a JSON object
 
@@ -938,6 +939,16 @@ what's more is that I learned this lesson halfway through; all of my
 `getFrames` functions are named the same thing and kept distinct from one
 another with the above namespace requirement. Not a big deal, but a little
 extra typing that didn't need to happen.
+
+If I had to rewrite the program, I would have done more work with `class`es.
+I had a couple of really repetitive sections of code where I was writing
+
+    foo :: Supertype -> bar
+    foo (subtype1 w) = foo w
+    foo (subtype2 w) = foo w
+
+It's not *that* much more code, but as soon as I see stuff like that, I
+know that the code could use some refactoring.
 
 Up until I hit the JSON segment, which involves a lot of converting various
 types to `String` and doesn't allow this, I had the luxury of being able to
