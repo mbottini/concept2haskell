@@ -10,3 +10,6 @@ clean:
 	rm -f *.pdf
 	rm -f *.html
 	rm -f *.txt
+
+pdf:
+	pandoc -V geometry:margin=1in -o writeup.pdf writeup.md
