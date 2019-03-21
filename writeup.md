@@ -37,14 +37,15 @@ the proprietary Concept2 Windows Utility.**
 A Concept2 rowing machine looks like this:
 
 ![rowing machine](images/concept2-model-d.jpg)
+\
 
 (Image pulled from https://www.concept2.com/indoor-rowers/model-d)
 
 There's a bar, attached to a heavy flywheel by a bicycle chain. During the
-*drive*, you straighten your legs and pull the bar the bar toward your chest.
-This spins the flywheel. The seat slides back with you as you pull.
-After you've fully extended, you *recover* by bending your legs and letting
-the bar come away from your chest. The seat slides forward toward the flywheel.
+*drive*, you straighten your legs and pull the bar toward your chest.
+This spins the flywheel. The seat slides back with you as you pull. After
+you've fully extended, you *recover* by bending your legs and letting the bar
+come away from your chest. The seat slides forward toward the flywheel.
 
 The flywheel has fins on it, so air resistance will slow the flywheel during
 the recovery. The machine measures the flywheel's acceleration and translates
@@ -91,7 +92,7 @@ and the distance that you row during the rest time.
 
 * "Fixed Calorie / Calorie Intervals" - same as the above four workouts, but
 with calories instead of meters or time. Unfortunately for me, the rowing
-machine converts this internally to meters, and this is not a trivial
+machine converts this internally to meters, and it is not a trivial
 conversion.
 
 * "Variable Intervals" - you can mix and match any of the interval types
@@ -391,10 +392,7 @@ entry, and the split size is a 2-byte entry.
 From `Utils.hs`, which you're going to see a lot of.
 
     grabChunk :: Int -> Int -> [a] -> [a]
-    grabChunk 0 0 _  = []
-    grabChunk _ _ [] = []
-    grabChunk 0 amount (x:xs) = x : grabChunk 0 (amount-1) xs
-    grabChunk offset amount (x:xs) = grabChunk (offset-1) amount xs
+    grabChunk offset amount = take amount . drop offset
 
 This function is analoguous to the Python "slice" operation. I want `amount`
 elements from `offset` indices into the list, as a list.
@@ -519,6 +517,21 @@ than the `>>=` operator. I only use the `IO` monad for the operation of
 getting the list of bytes from the file. There are a variety of these
 functions for converting `Word8` lists to various types, and we'll use
 them to build our own product types containing workout data.
+
+One other really common type here is the `DiffTime`, defined in `Data.Time`.
+I use this to measure durations of splits, intervals, total workout time,
+and so on. Some of the entries in the data format expect seconds, and others
+demand tenths of a second. For whatever reason, `DiffTime` only takes two
+inputs: seconds and picoseconds. So, my "tenth of a second" function looked
+like this:
+
+    parseDuration :: [Word8] -> DiffTime
+    parseDuration = picosecondsToDiffTime . 
+                    (*100000000000) .
+                    toInteger . 
+                    parseBigEndian
+
+That's a lot of zeros.
 
 ## Type Insanity
 
